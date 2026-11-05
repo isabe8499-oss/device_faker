@@ -1,5 +1,5 @@
 [workspace]
-members = ["xtask"]
+members = ["xtask", "identity-core"]
 exclude = ["device_faker_cli"]
 
 [package]

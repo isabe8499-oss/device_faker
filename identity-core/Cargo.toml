@@ -1,0 +1,8 @@
+[package]
+name = "identity-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hmac = "0.13"
+sha2 = "0.11"
