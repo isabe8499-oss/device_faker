@@ -73,6 +73,9 @@ jobs:
       - name: Test identity core
         run: cargo test --locked -p identity-core
 
+      - name: Test configuration models
+        run: cargo test --locked --package device_faker --lib
+
       - name: Build device_faker
         run: |
           cargo run --package xtask -- build -r
