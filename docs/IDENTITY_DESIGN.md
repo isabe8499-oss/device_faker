@@ -147,3 +147,12 @@ Before claiming support:
 - measure median and p95 added time in `pre_app_specialize` with identity unset vs. set; no performance number is claimed before those measurements.
 
 Manual validation must use test apps that display values through documented public APIs. Values hidden by platform permissions/redaction should be reported as unavailable, not marked as successful spoofing.
+
+
+## 12. Identity schema implementation status
+
+The Rust configuration model now accepts optional identity blocks on both template and direct-app records. The selected block is copied atomically into MergedAppConfig: a direct app record wins as a whole, and an absent identity block on that direct record does not inherit the template block.
+
+The initial schema recognizes mode (static / seeded), seed, android_id, serial, and app_instance_id. Unknown keys are ignored. Empty strings are treated as unset. Seeded mode requires a non-empty seed when a supported value is configured.
+
+This is configuration plumbing only. No Android hook, system property, Telephony API, MediaDrm, GAID, MAC, or attestation path consumes these fields yet. Host tests cover legacy config parsing, template selection, direct-app atomic replacement, unknown-key tolerance, and seeded-mode validation.

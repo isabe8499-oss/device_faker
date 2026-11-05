@@ -347,7 +347,7 @@ impl IdentityConfig {
     ///
     /// This validates configuration only; it does not install hooks or claim
     /// that the requested Android API is interceptable.
-    pub fn validate(&self) -> Result<(), &'static str> {
+    pub fn validate(&self) -> std::result::Result<(), &'static str> {
         if self.mode == IdentityMode::Seeded
             && self.is_configured()
             && !self.seed.as_deref().is_some_and(|seed| !seed.trim().is_empty())
