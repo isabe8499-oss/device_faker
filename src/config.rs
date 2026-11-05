@@ -300,6 +300,64 @@ fn expand_known_custom_property(map: &mut HashMap<String, String>, key: &str, va
     }
 }
 
+/// Identity values are opt-in and are only configuration data at this stage.
+/// No hook consumes these fields until a separately validated runtime path exists.
+#[derive(Debug, Clone, Copy, Deserialize, Default, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum IdentityMode {
+    /// Use only the literal values supplied in the configuration.
+    #[default]
+    Static,
+    /// Derive supported synthetic values from a user-provided seed.
+    Seeded,
+}
+
+/// Optional, app-scoped identity configuration.
+///
+/// Unknown TOML keys are ignored by Serde's default struct behavior, preserving
+/// forward compatibility. Empty strings are treated as unset.
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+pub struct IdentityConfig {
+    #[serde(default)]
+    pub mode: IdentityMode,
+    #[serde(default)]
+    pub seed: Option<String>,
+    #[serde(default)]
+    pub android_id: Option<String>,
+    #[serde(default)]
+    pub serial: Option<String>,
+    #[serde(default)]
+    pub app_instance_id: Option<String>,
+}
+
+impl IdentityConfig {
+    /// Returns true only when at least one supported value is explicitly set.
+    pub fn is_configured(&self) -> bool {
+        [
+            self.android_id.as_deref(),
+            self.serial.as_deref(),
+            self.app_instance_id.as_deref(),
+        ]
+        .into_iter()
+        .flatten()
+        .any(|value| !value.trim().is_empty())
+    }
+
+    /// Checks the minimum configuration required by the selected mode.
+    ///
+    /// This validates configuration only; it does not install hooks or claim
+    /// that the requested Android API is interceptable.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.mode == IdentityMode::Seeded
+            && self.is_configured()
+            && !self.seed.as_deref().is_some_and(|seed| !seed.trim().is_empty())
+        {
+            return Err("identity.mode = \"seeded\" requires a non-empty seed");
+        }
+        Ok(())
+    }
+}
+
 /// 机型模板
 #[derive(Debug, Clone, Deserialize)]
 pub struct DeviceTemplate {
@@ -365,6 +423,9 @@ pub struct DeviceTemplate {
     /// true 时 getprop（独立进程）和进程内读取一致，适用于属性一致性对比检测
     #[serde(default)]
     pub companion_resetprop: Option<bool>,
+    /// Optional process-scoped identity configuration (not yet consumed by runtime hooks).
+    #[serde(default)]
+    pub identity: Option<IdentityConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -429,6 +490,9 @@ pub struct AppConfig {
     /// true 时 getprop（独立进程）和进程内读取一致，适用于属性一致性对比检测
     #[serde(default)]
     pub companion_resetprop: Option<bool>,
+    /// Optional process-scoped identity configuration (not yet consumed by runtime hooks).
+    #[serde(default)]
+    pub identity: Option<IdentityConfig>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -521,6 +585,7 @@ impl Config {
                     .clone()
                     .unwrap_or_else(|| self.default_hide_maps.clone()),
                 companion_resetprop: app.companion_resetprop.unwrap_or(false),
+                identity: app.identity.clone(),
                 derived_props: HashSet::new(),
             };
             merged.complete_device_profile();
@@ -558,6 +623,7 @@ impl Config {
                     .clone()
                     .unwrap_or_else(|| self.default_hide_maps.clone()),
                 companion_resetprop: template.companion_resetprop.unwrap_or(false),
+                identity: template.identity.clone(),
                 derived_props: HashSet::new(),
             };
             merged.complete_device_profile();
@@ -841,6 +907,8 @@ pub struct MergedAppConfig {
     pub hide_maps: Vec<String>,
     /// 是否跳过 COW，所有属性走 companion resetprop（默认 false）
     pub companion_resetprop: bool,
+    /// Selected identity block; a direct app record replaces the template block atomically.
+    pub identity: Option<IdentityConfig>,
     /// 模块**自行注入** `custom_props` 的派生键（目前只有指纹解析出的
     /// `ro.build.type` / `ro.build.tags`，见 `complete_device_profile`）。
     /// 这些键不算「用户显式写出」，因此**不享受** patch-only 门控豁免
@@ -904,5 +972,126 @@ impl MergedAppConfig {
                 }
             }
         }
+    }
+}
+
+
+#[cfg(test)]
+mod identity_config_tests {
+    use super::{Config, IdentityMode};
+
+    #[test]
+    fn legacy_toml_without_identity_remains_valid() {
+        let config = Config::from_toml(r#"
+            debug = false
+
+            [templates.legacy]
+            packages = ["com.example.legacy"]
+            brand = "Example"
+        "#).expect("legacy config should parse");
+
+        let merged = config.get_merged_config("com.example.legacy")
+            .expect("legacy template should resolve");
+        assert!(merged.identity.is_none());
+    }
+
+    #[test]
+    fn template_identity_is_selected_when_no_direct_app_record_exists() {
+        let config = Config::from_toml(r#"
+            [templates.test]
+            packages = ["com.example.game"]
+
+            [templates.test.identity]
+            mode = "static"
+            android_id = "0123456789abcdef"
+        "#).expect("template identity should parse");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("template should resolve");
+        let identity = merged.identity.expect("template identity should be selected");
+        assert_eq!(identity.mode, IdentityMode::Static);
+        assert_eq!(identity.android_id.as_deref(), Some("0123456789abcdef"));
+        assert!(identity.is_configured());
+    }
+
+    #[test]
+    fn direct_app_identity_replaces_template_identity_as_a_whole() {
+        let config = Config::from_toml(r#"
+            [templates.test]
+            packages = ["com.example.game"]
+
+            [templates.test.identity]
+            mode = "static"
+            android_id = "template-value"
+            serial = "template-serial"
+
+            [[apps]]
+            package = "com.example.game"
+
+            [apps.identity]
+            mode = "static"
+            android_id = "app-value"
+        "#).expect("config should parse");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("direct app should resolve");
+        let identity = merged.identity.expect("app identity should be selected");
+        assert_eq!(identity.android_id.as_deref(), Some("app-value"));
+        assert!(identity.serial.is_none(), "template serial must not leak into app record");
+    }
+
+    #[test]
+    fn direct_app_without_identity_does_not_inherit_template_identity() {
+        let config = Config::from_toml(r#"
+            [templates.test]
+            packages = ["com.example.game"]
+
+            [templates.test.identity]
+            android_id = "template-value"
+
+            [[apps]]
+            package = "com.example.game"
+            brand = "AppBrand"
+        "#).expect("config should parse");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("direct app should resolve");
+        assert!(merged.identity.is_none());
+    }
+
+    #[test]
+    fn empty_identity_and_unknown_fields_are_ignored() {
+        let config = Config::from_toml(r#"
+            [[apps]]
+            package = "com.example.game"
+
+            [apps.identity]
+            future_identifier = "ignored"
+            android_id = ""
+        "#).expect("unknown identity fields should not break parsing");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("app should resolve");
+        let identity = merged.identity.expect("empty identity table is preserved");
+        assert!(!identity.is_configured());
+    }
+
+    #[test]
+    fn seeded_mode_requires_a_seed_when_values_are_configured() {
+        let config = Config::from_toml(r#"
+            [[apps]]
+            package = "com.example.game"
+
+            [apps.identity]
+            mode = "seeded"
+            android_id = "derived"
+        "#).expect("identity config should parse");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("app should resolve");
+        assert_eq!(
+            merged.identity.expect("identity should exist").validate(),
+            Err("identity.mode = \"seeded\" requires a non-empty seed")
+        );
     }
 }
