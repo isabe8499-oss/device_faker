@@ -42,7 +42,7 @@ fn output_has_uuid_v8_shape_and_variant() {
         .expect("derivation should succeed");
 
     let parts: Vec<&str> = value.split('-').collect();
-    assert_eq!(parts.iter().map(|part| part.len()).collect::<Vec<_>>(), [8, 4, 4, 4, 12]);
+    assert_eq!(parts.iter().map(|part| part.len()).collect::<Vec<_>>(), vec![8, 4, 4, 4, 12]);
     assert_eq!(parts[2].as_bytes()[0], b'8');
     assert!(matches!(parts[3].as_bytes()[0], b'8' | b'9' | b'a' | b'b'));
     assert!(value.chars().all(|ch| ch.is_ascii_hexdigit() || ch == '-'));
