@@ -1,5 +1,6 @@
 #[cfg(target_os = "android")]
 mod atexit;
+mod app_scope;
 mod companion;
 mod config;
 mod cow_props;
@@ -149,8 +150,15 @@ impl MyModule {
         env: &mut EnvUnowned,
         args: &mut <V4 as ZygiskRaw>::AppSpecializeArgs,
     ) -> anyhow::Result<()> {
-        let package_name = Self::extract_package_name(env, args)?;
-        let user_id = Self::extract_android_user_id(args);
+        let (package_name, user_id) = env
+            .with_env(|_jenv| -> Result<(String, u32), jni::errors::Error> {
+                let app_data_dir = args.app_data_dir.to_string();
+                let nice_name = args.nice_name.to_string();
+                let package_name = app_scope::resolve_package_name(&app_data_dir, &nice_name)
+                    .ok_or(jni::errors::Error::JniCall(jni::errors::JniError::Unknown))?;
+                Ok((package_name, app_scope::android_user_id(*args.uid)))
+            })
+            .resolve::<ThrowRuntimeExAndDefault>();
         let package_with_user = format!("{package_name}@{user_id}");
 
         // companion 侧现在自己管理会话状态和恢复逻辑；
@@ -342,43 +350,6 @@ impl MyModule {
         Ok(())
     }
 
-    fn extract_android_user_id(args: &<V4 as ZygiskRaw>::AppSpecializeArgs) -> u32 {
-        // Android 的 app UID = userId * 100000 + appId
-        // 这里的 userId 对应 /data/user/<userId>/... 里的数字
-        const AID_USER_OFFSET: u32 = 100_000;
-        let uid = *args.uid;
-        if uid <= 0 {
-            return 0;
-        }
-        (uid as u32) / AID_USER_OFFSET
-    }
-
-    fn extract_package_name(
-        env: &mut EnvUnowned,
-        args: &<V4 as ZygiskRaw>::AppSpecializeArgs,
-    ) -> anyhow::Result<String> {
-        let result: String = env
-            .with_env(|_jenv| -> Result<String, jni::errors::Error> {
-                let app_data_dir = args.app_data_dir.to_string();
-
-                if let Some(package) = app_data_dir.rsplit('/').next()
-                    && !package.is_empty()
-                {
-                    return Ok(package.to_string());
-                }
-
-                let nice_name = args.nice_name.to_string();
-
-                let mut nice_name: String = nice_name;
-                if let Some(idx) = nice_name.find(':') {
-                    nice_name.truncate(idx);
-                }
-
-                Ok(nice_name)
-            })
-            .resolve::<ThrowRuntimeExAndDefault>();
-        Ok(result)
-    }
 }
 
 fn load_config() -> anyhow::Result<Option<Config>> {
