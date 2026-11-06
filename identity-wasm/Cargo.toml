@@ -1,0 +1,19 @@
+[package]
+name = "identity-wasm"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+identity-core = { path = "../identity-core" }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+wasm-bindgen = "=0.2.130"
+
+# Keep the bridge in its own Cargo workspace so its dependencies do not
+# alter the locked Android module workspace.
+[workspace]
+resolver = "3"
