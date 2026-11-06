@@ -21,7 +21,7 @@
         v-model="selectedPackage"
         filterable
         clearable
-        placeholder="{{ t('identityLab.selectPackage') }}"
+        :placeholder="t('identityLab.selectPackage')"
         class="package-select"
         :loading="appsStore.loading"
       >
@@ -57,7 +57,7 @@
         </div>
 
         <el-form label-position="top">
-          <el-form-item label="{{ t('identityLab.modeTitle') }}">
+          <el-form-item :label="t('identityLab.modeTitle')">
             <el-radio-group v-model="mode">
               <el-radio-button value="static">{{ t('identityLab.staticMode') }}</el-radio-button>
               <el-radio-button value="seeded">{{ t('identityLab.seededMode') }}</el-radio-button>
@@ -65,18 +65,18 @@
           </el-form-item>
 
           <template v-if="mode === 'static'">
-            <el-form-item label="{{ t('identityLab.androidIdStatic') }}">
-              <el-input v-model="androidId" maxlength="16" placeholder="{{ t('identityLab.androidIdPlaceholder') }}" />
+            <el-form-item :label="t('identityLab.androidIdStatic')">
+              <el-input v-model="androidId" maxlength="16" :placeholder="t('identityLab.androidIdPlaceholder')" />
               <div class="field-actions">
                 <el-button size="small" @click="generateStaticValue('android_id')">{{ t('identityLab.generateTestValue') }}</el-button>
                 <el-button v-if="androidId" size="small" text @click="copyValue(androidId)">{{ t('identityLab.copy') }}</el-button>
               </div>
             </el-form-item>
-            <el-form-item label="{{ t('identityLab.appInstanceStatic') }}">
-              <el-input v-model="appInstanceId" placeholder="{{ t('identityLab.uuidPlaceholder') }}" />
+            <el-form-item :label="t('identityLab.appInstanceStatic')">
+              <el-input v-model="appInstanceId" :placeholder="t('identityLab.uuidPlaceholder')" />
               <div class="field-actions">
-                <el-button size="small" @click="generateStaticValue('app_instance_id')">Gerar valor de teste</el-button>
-                <el-button v-if="appInstanceId" size="small" text @click="copyValue(appInstanceId)">Copiar</el-button>
+                <el-button size="small" @click="generateStaticValue('app_instance_id')">{{ t('identityLab.generateTestValue') }}</el-button>
+                <el-button v-if="appInstanceId" size="small" text @click="copyValue(appInstanceId)">{{ t('identityLab.copy') }}</el-button>
               </div>
             </el-form-item>
           </template>
@@ -92,13 +92,13 @@
               </div>
               <div v-if="preview && generateAndroidId" class="value-row">
                 <code>{{ preview.identifiers.android_id }}</code>
-                <el-button text @click="copyValue(preview.identifiers.android_id)">Copiar</el-button>
+                <el-button text @click="copyValue(preview.identifiers.android_id)">{{ t('identityLab.copy') }}</el-button>
               </div>
               <el-input
                 v-if="!generateAndroidId"
                 v-model="androidId"
                 maxlength="16"
-                placeholder="{{ t('identityLab.manualAndroidIdPlaceholder') }}"
+                :placeholder="t('identityLab.manualAndroidIdPlaceholder')"
               />
             </div>
 
@@ -112,12 +112,12 @@
               </div>
               <div v-if="preview && generateAppInstanceId" class="value-row">
                 <code>{{ preview.identifiers.app_instance_id }}</code>
-                <el-button text @click="copyValue(preview.identifiers.app_instance_id)">Copiar</el-button>
+                <el-button text @click="copyValue(preview.identifiers.app_instance_id)">{{ t('identityLab.copy') }}</el-button>
               </div>
               <el-input
                 v-if="!generateAppInstanceId"
                 v-model="appInstanceId"
-                placeholder="{{ t('identityLab.manualUuidPlaceholder') }}"
+                :placeholder="t('identityLab.manualUuidPlaceholder')"
               />
             </div>
 
@@ -132,7 +132,7 @@
               <label>{{ t('identityLab.privateSeedLabel') }}</label>
               <div class="value-row">
                 <code>{{ seed }}</code>
-                <el-button text @click="copyValue(seed)">Copiar</el-button>
+                <el-button text @click="copyValue(seed)">{{ t('identityLab.copy') }}</el-button>
               </div>
               <p>{{ t('identityLab.deterministicSeedNote') }}</p>
             </div>
@@ -150,11 +150,11 @@
               v-model="serial"
               :disabled="!serialEnabled"
               maxlength="128"
-              placeholder="{{ t('identityLab.serialPlaceholder') }}"
+              :placeholder="t('identityLab.serialPlaceholder')"
             />
             <div class="field-actions">
               <el-button size="small" :disabled="!serialEnabled" @click="generateTestSerial">{{ t('identityLab.generateTestSerial') }}</el-button>
-              <el-button v-if="serial" size="small" text @click="copyValue(serial)">Copiar</el-button>
+              <el-button v-if="serial" size="small" text @click="copyValue(serial)">{{ t('identityLab.copy') }}</el-button>
             </div>
             <span class="runtime-pill">{{ t('identityLab.limitedSupport') }}</span>
           </div>
@@ -231,7 +231,7 @@ const profileScopeLabel = computed(() => {
   return t('identityLab.scope', { package: scope.base, userId: scope.userId })
 })
 
-const runtimeNotice = t('identityLab.runtimeNotice')
+const runtimeNotice = computed(() => t('identityLab.runtimeNotice'))
 const protectedIdentifiers = [
   { nameKey: 'identityLab.protected.gsfName', descriptionKey: 'identityLab.protected.gsfDesc' },
   { nameKey: 'identityLab.protected.gaidName', descriptionKey: 'identityLab.protected.gaidDesc' },
@@ -349,7 +349,7 @@ async function generateStaticValue(kind: 'android_id' | 'app_instance_id') {
     if (selectedPackage.value !== packageName) return
     if (kind === 'android_id') androidId.value = values.identifiers.android_id
     else appInstanceId.value = values.identifiers.app_instance_id
-    ElMessage.success('{{ t('identityLab.generated') }}')
+    ElMessage.success(t('identityLab.generated'))
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
@@ -361,7 +361,7 @@ function generateTestSerial() {
   try {
     serial.value = `DF-TEST-${createIdentitySeedHex().slice(0, 12).toUpperCase()}`
     serialEnabled.value = true
-    ElMessage.success('{{ t('identityLab.serialGenerated') }}')
+    ElMessage.success(t('identityLab.serialGenerated'))
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   }
@@ -370,9 +370,9 @@ function generateTestSerial() {
 async function copyValue(value: string) {
   try {
     await navigator.clipboard.writeText(value)
-    ElMessage.success('{{ t('identityLab.copied') }}')
+    ElMessage.success(t('identityLab.copied'))
   } catch {
-    error.value = '{{ t('identityLab.errorClipboard') }}'
+    error.value = t('identityLab.errorClipboard')
   }
 }
 
@@ -384,7 +384,7 @@ async function saveProfile() {
     const identity: IdentityConfig = { enabled: profileEnabled.value, mode: mode.value }
     const cleanSerial = serialEnabled.value ? serial.value.trim() : ''
     if (serialEnabled.value && !cleanSerial) {
-      throw new Error('{{ t('identityLab.errorSerialRequired') }}')
+      throw new Error(t('identityLab.errorSerialRequired'))
     }
     if (cleanSerial) identity.serial = cleanSerial
 
@@ -408,7 +408,7 @@ async function saveProfile() {
     }
 
     if (!isIdentityConfigValid(identity)) {
-      throw new Error('{{ t('identityLab.errorInvalidProfile') }}')
+      throw new Error(t('identityLab.errorInvalidProfile'))
     }
 
     const resolvedMatches = configStore.resolvePackageMatchesFor(selectedPackage.value)
@@ -423,7 +423,7 @@ async function saveProfile() {
 
     if (identity.mode === 'seeded') await refreshPreview()
     else preview.value = null
-    ElMessage.success(profileEnabled.value ? '{{ t('identityLab.savedActive') }}' : '{{ t('identityLab.savedDisabled') }}')
+    ElMessage.success(profileEnabled.value ? t('identityLab.savedActive') : t('identityLab.savedDisabled'))
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
