@@ -80,3 +80,16 @@ fn package_validation_accepts_normal_dotted_names() {
     assert_eq!(app.package(), "com.example_game.client2");
     assert_eq!(app.android_user_id(), 10);
 }
+
+#[test]
+fn fixed_seed_matches_v1_test_vectors() {
+    let app = scope("com.example.game", 0);
+    assert_eq!(
+        generate_android_id(&SEED, &app).unwrap(),
+        "da970cdb547bb973"
+    );
+    assert_eq!(
+        generate_app_instance_id(&SEED, &app).unwrap(),
+        "6a8999ce-3a4e-8c23-aa6b-c80445b6bd7c"
+    );
+}

@@ -7,8 +7,8 @@ use crate::AppScope;
 
 type HmacSha256 = Hmac<Sha256>;
 
-const ANDROID_ID_DOMAIN: &[u8] = b"device-faker/identity-core/android-id/v1\\0";
-const APP_INSTANCE_ID_DOMAIN: &[u8] = b"device-faker/identity-core/app-instance-id/v1\\0";
+const ANDROID_ID_DOMAIN: &[u8] = b"device-faker/identity-core/android-id/v1\0";
+const APP_INSTANCE_ID_DOMAIN: &[u8] = b"device-faker/identity-core/app-instance-id/v1\0";
 
 /// Decode a 32-byte seed represented by exactly 64 hexadecimal characters.
 pub fn decode_seed_hex(value: &str) -> Result<[u8; 32], DerivationError> {
