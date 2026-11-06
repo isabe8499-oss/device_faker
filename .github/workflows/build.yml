@@ -61,7 +61,7 @@ jobs:
       - name: Build shared identity WebAssembly bridge
         run: |
           rustup target add wasm32-unknown-unknown
-          wasm-pack build identity-wasm --target bundler --release --out-dir ../webui/src/wasm/pkg --out-name identity_wasm
+          wasm-pack build identity-wasm --target web --release --out-dir ../webui/src/wasm/pkg --out-name identity_wasm
 
       - name: Test shared identity WebAssembly bridge
         run: cargo test --manifest-path identity-wasm/Cargo.toml
