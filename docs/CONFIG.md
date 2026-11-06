@@ -296,7 +296,7 @@ Campos ausentes ou vazios não solicitam alteração. Chaves futuras desconhecid
 > Estes campos não significam que IMEI, IMSI, ICCID, GAID, Widevine, MAC ou atestação de hardware possam ser alterados. Esses caminhos continuam fora do escopo até existir uma implementação específica e validada.
 
 
-## Identity schema v1 (configuration and synthetic generator only)
+## Identity schema v1 (configuration, synthetic generator and limited runtime field)
 
 Identity configuration is optional under either `[templates.<name>.identity]` or `[apps.identity]`.
 
@@ -317,12 +317,12 @@ app_instance_id = true
 - `generate.android_id`: produces a synthetic, app-scoped 16-character hexadecimal test value in `identity-core`.
 - `generate.app_instance_id`: produces a synthetic app-instance UUIDv8.
 - A literal field and its corresponding `generate.*` flag cannot both be set.
-- `serial` is literal-only in this schema; no OEM serial number is generated.
-- Static Android-ID-shaped values accept 1–16 hexadecimal characters, reflecting the AOSP hex representation. This does not mean `Settings.Secure.ANDROID_ID` is changed.
+- `serial` is literal-only; no OEM serial number is generated. A valid value overrides only the deprecated `android.os.Build.SERIAL` static field in the selected app process.
+- Static Android-ID-shaped values accept 1–16 hexadecimal characters, reflecting the AOSP hex representation. This does not mean `Settings.Secure.ANDROID_ID` is changed. A valid `serial` updates only the deprecated app-process `Build.SERIAL` field; the modern `Build.getSerial()` Binder service remains untouched.
 - Unknown keys remain ignored; an absent identity block leaves legacy configurations unchanged.
 - A direct `[[apps]]` record replaces the template identity block as a whole. If no identity block is present on the direct record, the template identity is not inherited.
 
-**Runtime status:** these fields are parsed and validated, and the pure Rust generator is available for tests. No Android API consumes the generated values yet. In particular, the module does not currently intercept `Settings.Secure.ANDROID_ID`, `Build.getSerial()`, Telephony, GAID, MediaDrm, MAC addresses, or Key Attestation. Do not interpret a generated value as proof that an Android API returns it.
+**Runtime status:** a valid `serial` value is applied only to the deprecated `Build.SERIAL` static field inside the selected app process. It does not change `Build.getSerial()`, `ro.serialno` in `system_server`, or the hardware serial. `generate.android_id` and `generate.app_instance_id` remain synthetic generator/preview outputs and are not consumed by Android APIs. The module does not intercept `Settings.Secure.ANDROID_ID`, Telephony, GAID, MediaDrm, MAC addresses, or Key Attestation. Do not interpret a generated value as proof that an Android API returns it.
 
 
 ## CLI — gerar perfil sintético de identidade
