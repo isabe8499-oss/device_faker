@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,vue,js,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,vue,js,json,css,md}\"",
     "type-check": "vue-tsc --noEmit",
-    "build:wasm": "wasm-pack build ../identity-wasm --target bundler --release --out-dir ../webui/src/wasm/pkg --out-name identity_wasm"
+    "build:wasm": "wasm-pack build ../identity-wasm --target web --release --out-dir ../webui/src/wasm/pkg --out-name identity_wasm"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.9",
