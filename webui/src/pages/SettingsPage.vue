@@ -146,7 +146,7 @@ function onThemeChange(value: string | number) {
 }
 
 function onLanguageChange(value: string | number) {
-  settingsStore.setLanguage(value as 'system' | 'zh' | 'en' | 'tr')
+  settingsStore.setLanguage(value as 'system' | 'zh' | 'en' | 'tr' | 'pt-BR')
 }
 
 const themeOptions = computed(() => [
@@ -160,6 +160,7 @@ const languageOptions = computed(() => [
   { value: 'zh', label: t('settings.display.language.zh') },
   { value: 'en', label: t('settings.display.language.en') },
   { value: 'tr', label: t('settings.display.language.tr') },
+  { value: 'pt-BR', label: t('settings.display.language.ptBR') },
 ])
 
 async function onDebugChange(value: boolean) {
