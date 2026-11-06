@@ -76,6 +76,9 @@ jobs:
       - name: Test configuration models
         run: cargo test --locked --package device_faker --lib
 
+      - name: Test developer CLI
+        run: cargo test --locked --package device_faker_cli
+
       - name: Build device_faker
         run: |
           cargo run --package xtask -- build -r

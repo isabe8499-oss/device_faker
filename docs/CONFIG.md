@@ -323,3 +323,19 @@ app_instance_id = true
 - A direct `[[apps]]` record replaces the template identity block as a whole. If no identity block is present on the direct record, the template identity is not inherited.
 
 **Runtime status:** these fields are parsed and validated, and the pure Rust generator is available for tests. No Android API consumes the generated values yet. In particular, the module does not currently intercept `Settings.Secure.ANDROID_ID`, `Build.getSerial()`, Telephony, GAID, MediaDrm, MAC addresses, or Key Attestation. Do not interpret a generated value as proof that an Android API returns it.
+
+
+## CLI — gerar perfil sintético de identidade
+
+A CLI de desenvolvimento oferece geração de dados sintéticos em TOML ou JSON. Ela não é copiada para o ZIP do módulo e não altera identificadores do Android.
+
+```bash
+# Gera seed aleatória de 32 bytes pelo CSPRNG do sistema e imprime TOML
+device_faker_cli identity generate --package com.example.game --user-id 0
+
+# Gera a mesma saída sempre que pacote, usuário e seed forem iguais
+device_faker_cli identity generate --package com.example.game --user-id 0 \
+  --seed 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a --json
+```
+
+A saída inclui a seed para reprodutibilidade. Trate-a como segredo local: não publique, não envie para logs e não reutilize entre dispositivos quando quiser evitar correlação. A CLI apenas gera um bloco TOML/JSON; não edita nem sobrescreve `config.toml`. Os campos gerados são sintéticos e ainda não são consumidos por hooks Android.

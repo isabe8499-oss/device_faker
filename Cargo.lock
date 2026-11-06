@@ -391,6 +391,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "device_faker_cli"
+version = "1.6.0"
+dependencies = [
+ "anyhow",
+ "argh",
+ "getrandom",
+ "identity-core",
+ "serde",
+ "serde_json",
+ "toml",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
 name = "digest"
 version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

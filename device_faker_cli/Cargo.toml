@@ -8,6 +8,9 @@ authors = ["Seyud"]
 anyhow = { version = "1.0.102", default-features = false }
 argh = "0.1.19"
 serde = { version = "1.0.228", features = ["derive"] }
+getrandom = "0.4.3"
+identity-core = { path = "../identity-core" }
+serde_json = "1.0.149"
 toml = { version = "1.0", features = ["display", "parse"] }
 walkdir = "2.5.0"
 zip = { version = "9.0.1", default-features = false, features = ["deflate"] }
