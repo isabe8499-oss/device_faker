@@ -16,6 +16,8 @@ export interface IdentityGenerate {
 }
 
 export interface IdentityConfig {
+  /** Absent means enabled for backward compatibility with existing profiles. */
+  enabled?: boolean
   mode?: 'static' | 'seeded'
   seed?: string
   android_id?: string
