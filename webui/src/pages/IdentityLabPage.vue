@@ -2,9 +2,9 @@
   <div class="identity-lab">
     <section class="hero glass-effect">
       <div class="hero-copy">
-        <p class="eyebrow">ZYGISK · PERFIL POR APLICATIVO</p>
-        <h2>Laboratório de Identidade</h2>
-        <p>Configure perfis locais de teste e confira exatamente quais valores o runtime atual consegue aplicar.</p>
+        <p class="eyebrow">{{ t('identityLab.eyebrow') }}</p>
+        <h2>{{ t('identityLab.title') }}</h2>
+        <p>{{ t('identityLab.subtitle') }}</p>
       </div>
       <span class="hero-mark"><Fingerprint :size="30" /></span>
     </section>
@@ -12,16 +12,16 @@
     <section class="panel glass-effect">
       <div class="panel-heading">
         <div>
-          <h3>Aplicativo de destino</h3>
-          <p>O perfil é salvo para um pacote específico.</p>
+          <h3>{{ t('identityLab.appTargetTitle') }}</h3>
+          <p>{{ t('identityLab.appTargetDesc') }}</p>
         </div>
-        <span class="state-pill">ESCOPO LOCAL</span>
+        <span class="state-pill">{{ t('identityLab.localScope') }}</span>
       </div>
       <el-select
         v-model="selectedPackage"
         filterable
         clearable
-        placeholder="Selecione ou pesquise um aplicativo"
+        placeholder="{{ t('identityLab.selectPackage') }}"
         class="package-select"
         :loading="appsStore.loading"
       >
@@ -32,48 +32,48 @@
           :value="app.packageName"
         />
       </el-select>
-      <p v-if="!selectedPackage" class="hint">Escolha um aplicativo para carregar, editar e salvar seu perfil.</p>
+      <p v-if="!selectedPackage" class="hint">{{ t('identityLab.choosePackageHint') }}</p>
     </section>
 
     <template v-if="selectedPackage">
       <section class="panel glass-effect">
         <div class="panel-heading">
           <div>
-            <h3>Identidade do aplicativo</h3>
-            <p>Escolha valores manuais ou gere identificadores sintéticos determinísticos.</p>
-            <p class="scope-line">Escopo: {{ profileScopeLabel }}</p>
+            <h3>{{ t('identityLab.appIdentityTitle') }}</h3>
+            <p>{{ t('identityLab.appIdentityDesc') }}</p>
+            <p class="scope-line">{{ profileScopeLabel }}</p>
           </div>
           <span class="state-pill" :class="profileEnabled ? 'state-pill--green' : ''">
-            {{ profileEnabled ? 'PERFIL ATIVO' : 'PERFIL DESATIVADO' }}
+            {{ profileEnabled ? t('identityLab.profileActive') : t('identityLab.profileDisabled') }}
           </span>
         </div>
 
         <div class="profile-enable-row">
           <div>
-            <strong>Ativar identidade sintética</strong>
-            <small>Desativado: o Zygisk não aplica o Serial legado deste perfil. Os valores ficam salvos.</small>
+            <strong>{{ t('identityLab.enableTitle') }}</strong>
+            <small>{{ t('identityLab.enableDesc') }}</small>
           </div>
           <el-switch v-model="profileEnabled" />
         </div>
 
         <el-form label-position="top">
-          <el-form-item label="Modo do perfil">
+          <el-form-item label="{{ t('identityLab.modeTitle') }}">
             <el-radio-group v-model="mode">
-              <el-radio-button value="static">Valores manuais</el-radio-button>
-              <el-radio-button value="seeded">Derivado por seed</el-radio-button>
+              <el-radio-button value="static">{{ t('identityLab.staticMode') }}</el-radio-button>
+              <el-radio-button value="seeded">{{ t('identityLab.seededMode') }}</el-radio-button>
             </el-radio-group>
           </el-form-item>
 
           <template v-if="mode === 'static'">
-            <el-form-item label="Android ID sintético (hexadecimal)">
-              <el-input v-model="androidId" maxlength="16" placeholder="Ex.: 7a4d9c2b3e8f11a4" />
+            <el-form-item label="{{ t('identityLab.androidIdStatic') }}">
+              <el-input v-model="androidId" maxlength="16" placeholder="{{ t('identityLab.androidIdPlaceholder') }}" />
               <div class="field-actions">
-                <el-button size="small" @click="generateStaticValue('android_id')">Gerar valor de teste</el-button>
-                <el-button v-if="androidId" size="small" text @click="copyValue(androidId)">Copiar</el-button>
+                <el-button size="small" @click="generateStaticValue('android_id')">{{ t('identityLab.generateTestValue') }}</el-button>
+                <el-button v-if="androidId" size="small" text @click="copyValue(androidId)">{{ t('identityLab.copy') }}</el-button>
               </div>
             </el-form-item>
-            <el-form-item label="App Instance UUID sintético">
-              <el-input v-model="appInstanceId" placeholder="UUID versão 8" />
+            <el-form-item label="{{ t('identityLab.appInstanceStatic') }}">
+              <el-input v-model="appInstanceId" placeholder="{{ t('identityLab.uuidPlaceholder') }}" />
               <div class="field-actions">
                 <el-button size="small" @click="generateStaticValue('app_instance_id')">Gerar valor de teste</el-button>
                 <el-button v-if="appInstanceId" size="small" text @click="copyValue(appInstanceId)">Copiar</el-button>
@@ -85,8 +85,8 @@
             <div class="field-card">
               <div class="field-top">
                 <div>
-                  <strong>Gerar Android ID sintético</strong>
-                  <small>Prévia em formato Android ID; não altera Settings.Secure.ANDROID_ID.</small>
+                  <strong>{{ t('identityLab.generateAndroidId') }}</strong>
+                  <small>{{ t('identityLab.androidIdPreviewNote') }}</small>
                 </div>
                 <el-switch v-model="generateAndroidId" />
               </div>
@@ -98,15 +98,15 @@
                 v-if="!generateAndroidId"
                 v-model="androidId"
                 maxlength="16"
-                placeholder="Valor hexadecimal manual"
+                placeholder="{{ t('identityLab.manualAndroidIdPlaceholder') }}"
               />
             </div>
 
             <div class="field-card">
               <div class="field-top">
                 <div>
-                  <strong>Gerar App Instance UUID</strong>
-                  <small>UUIDv8 sintético de teste; não substitui IDs internos de SDKs de terceiros.</small>
+                  <strong>{{ t('identityLab.generateAppInstance') }}</strong>
+                  <small>{{ t('identityLab.appInstanceNote') }}</small>
                 </div>
                 <el-switch v-model="generateAppInstanceId" />
               </div>
@@ -117,32 +117,32 @@
               <el-input
                 v-if="!generateAppInstanceId"
                 v-model="appInstanceId"
-                placeholder="UUID manual"
+                placeholder="{{ t('identityLab.manualUuidPlaceholder') }}"
               />
             </div>
 
             <div class="actions">
               <el-button type="primary" :loading="busy" @click="generatePreview">
-                <WandSparkles :size="16" /> Gerar seed e prévia
+                <WandSparkles :size="16" /> {{ t('identityLab.generateSeedPreview') }}
               </el-button>
-              <el-button :disabled="!seed || busy" @click="refreshPreview">Atualizar prévia</el-button>
+              <el-button :disabled="!seed || busy" @click="refreshPreview">{{ t('identityLab.refreshPreview') }}</el-button>
             </div>
 
             <div v-if="seed" class="seed-box">
-              <label>Seed privada · 32 bytes / 64 caracteres hexadecimais</label>
+              <label>{{ t('identityLab.privateSeedLabel') }}</label>
               <div class="value-row">
                 <code>{{ seed }}</code>
                 <el-button text @click="copyValue(seed)">Copiar</el-button>
               </div>
-              <p>O mesmo pacote, usuário e seed produzem a mesma prévia. Guarde a seed em local seguro.</p>
+              <p>{{ t('identityLab.deterministicSeedNote') }}</p>
             </div>
           </template>
 
           <div class="field-card">
             <div class="field-top">
               <div>
-                <strong>Legacy Build.SERIAL</strong>
-                <small>O hook atual altera somente o campo estático legado no processo selecionado. Build.getSerial() permanece inalterado.</small>
+                <strong>{{ t('identityLab.serialTitle') }}</strong>
+                <small>{{ t('identityLab.serialNote') }}</small>
               </div>
               <el-switch v-model="serialEnabled" />
             </div>
@@ -150,13 +150,13 @@
               v-model="serial"
               :disabled="!serialEnabled"
               maxlength="128"
-              placeholder="Digite um valor de teste (ASCII)"
+              placeholder="{{ t('identityLab.serialPlaceholder') }}"
             />
             <div class="field-actions">
-              <el-button size="small" :disabled="!serialEnabled" @click="generateTestSerial">Gerar Serial de teste</el-button>
+              <el-button size="small" :disabled="!serialEnabled" @click="generateTestSerial">{{ t('identityLab.generateTestSerial') }}</el-button>
               <el-button v-if="serial" size="small" text @click="copyValue(serial)">Copiar</el-button>
             </div>
-            <span class="runtime-pill">SUPORTE LIMITADO IMPLEMENTADO</span>
+            <span class="runtime-pill">{{ t('identityLab.limitedSupport') }}</span>
           </div>
         </el-form>
 
@@ -167,24 +167,24 @@
       <section class="panel glass-effect">
         <div class="panel-heading">
           <div>
-            <h3>Identificadores de hardware e serviços</h3>
-            <p>Estado real de suporte: sem interruptores fictícios.</p>
+            <h3>{{ t('identityLab.protectedTitle') }}</h3>
+            <p>{{ t('identityLab.protectedDesc') }}</p>
           </div>
-          <span class="state-pill">NÃO ALTERADOS</span>
+          <span class="state-pill">{{ t('common.disabled') }}</span>
         </div>
-        <div v-for="item in protectedIdentifiers" :key="item.name" class="protected-row">
+        <div v-for="item in protectedIdentifiers" :key="item.nameKey" class="protected-row">
           <div>
-            <strong>{{ item.name }}</strong>
-            <small>{{ item.description }}</small>
+            <strong>{{ t(item.nameKey) }}</strong>
+            <small>{{ t(item.descriptionKey) }}</small>
           </div>
-          <span class="unavailable-pill">Não implementado</span>
+          <span class="unavailable-pill">{{ t('identityLab.notImplemented') }}</span>
         </div>
-        <p class="notice">IMEI, MEID, IMSI, ICCID, número telefônico, endereços físicos de rede, MediaDrm/Widevine e atestação dependem de serviços, hardware ou provisionamento protegido. Esta página não simula que esses identificadores reais foram alterados.</p>
+        <p class="notice">{{ t('identityLab.protectedNotice') }}</p>
       </section>
 
       <div class="save-bar">
-        <el-button @click="loadSelectedProfile">Descartar alterações</el-button>
-        <el-button type="primary" :loading="saving" @click="saveProfile">Salvar perfil</el-button>
+        <el-button @click="loadSelectedProfile">{{ t('identityLab.discard') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveProfile">{{ t('identityLab.save') }}</el-button>
       </div>
     </template>
   </div>
@@ -194,6 +194,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { Fingerprint, WandSparkles } from '@lucide/vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from '../utils/i18n'
 import { useAppsStore } from '../stores/apps'
 import { useConfigStore } from '../stores/config'
 import {
@@ -205,6 +206,7 @@ import {
 import type { IdentityConfig } from '../types'
 import { configWriteKey, parsePackageUser } from '../utils/package'
 
+const { t } = useI18n()
 const appsStore = useAppsStore()
 const configStore = useConfigStore()
 const selectedPackage = ref('')
@@ -226,26 +228,26 @@ let previewRequestId = 0
 const profileScopeLabel = computed(() => {
   if (!selectedPackage.value) return ''
   const scope = parsePackageUser(selectedPackage.value)
-  return `${scope.base} · usuário Android ${scope.userId}`
+  return t('identityLab.scope', { package: scope.base, userId: scope.userId })
 })
 
-const runtimeNotice = 'Com o perfil ativo, o runtime atual consome somente Legacy Build.SERIAL. Android ID e App Instance UUID são armazenados/visualizados como dados sintéticos, mas ainda não são interceptados nas APIs Android. Desativar o perfil impede também o override do Serial legado.'
+const runtimeNotice = t('identityLab.runtimeNotice')
 const protectedIdentifiers = [
-  { name: 'GSF ID', description: 'Identificador atribuído pelo Google Services Framework; nenhuma interceptação é aplicada.' },
-  { name: 'Google Advertising ID (GAID)', description: 'Identificador fornecido pelo Google Play services; não é substituído.' },
-  { name: 'App Set ID', description: 'Identificador gerenciado pelo Google Play services; permanece sob controle do serviço.' },
-  { name: 'IMEI / MEID', description: 'Identificadores de equipamento celular protegidos por permissões e serviços de telefonia.' },
-  { name: 'IMSI', description: 'Identificador de assinante da rede móvel; não é gerado nem substituído.' },
-  { name: 'ICCID / SIM Serial ID', description: 'Número de série do cartão SIM; o estado do cartão permanece intacto.' },
-  { name: 'SIM Subscription IDs', description: 'IDs de assinaturas e slots de SIM; sem alteração no serviço de telefonia.' },
-  { name: 'Mobile Number', description: 'Número de linha depende da operadora e do SIM; não é falsificado.' },
-  { name: 'SIM Operator', description: 'Nome e MCC/MNC da operadora não são modificados.' },
-  { name: 'eSIM EID', description: 'Identificador de eSIM ligado ao hardware e ao provisionamento da operadora.' },
-  { name: 'MediaDrm / Widevine ID', description: 'Provisionamento DRM, TEE, KeyMint e chaves protegidas permanecem intactos.' },
-  { name: 'Wi-Fi MAC', description: 'Endereço físico da interface; o controlador e o estado global de rede não são alterados.' },
-  { name: 'MAC BSSID / SSID', description: 'Dados do ponto de acesso e da rede conectada não são substituídos.' },
-  { name: 'Bluetooth MAC', description: 'O endereço do controlador Bluetooth permanece intacto.' },
-  { name: 'Hardware ID / atestação', description: 'Identidade de hardware e atestação respaldada por hardware permanecem intactas.' },
+  { nameKey: 'identityLab.protected.gsfName', descriptionKey: 'identityLab.protected.gsfDesc' },
+  { nameKey: 'identityLab.protected.gaidName', descriptionKey: 'identityLab.protected.gaidDesc' },
+  { nameKey: 'identityLab.protected.appSetName', descriptionKey: 'identityLab.protected.appSetDesc' },
+  { nameKey: 'identityLab.protected.imeiName', descriptionKey: 'identityLab.protected.imeiDesc' },
+  { nameKey: 'identityLab.protected.imsiName', descriptionKey: 'identityLab.protected.imsiDesc' },
+  { nameKey: 'identityLab.protected.iccidName', descriptionKey: 'identityLab.protected.iccidDesc' },
+  { nameKey: 'identityLab.protected.simSubscriptionName', descriptionKey: 'identityLab.protected.simSubscriptionDesc' },
+  { nameKey: 'identityLab.protected.mobileName', descriptionKey: 'identityLab.protected.mobileDesc' },
+  { nameKey: 'identityLab.protected.operatorName', descriptionKey: 'identityLab.protected.operatorDesc' },
+  { nameKey: 'identityLab.protected.eidName', descriptionKey: 'identityLab.protected.eidDesc' },
+  { nameKey: 'identityLab.protected.drmName', descriptionKey: 'identityLab.protected.drmDesc' },
+  { nameKey: 'identityLab.protected.wifiMacName', descriptionKey: 'identityLab.protected.wifiMacDesc' },
+  { nameKey: 'identityLab.protected.bssidName', descriptionKey: 'identityLab.protected.bssidDesc' },
+  { nameKey: 'identityLab.protected.bluetoothName', descriptionKey: 'identityLab.protected.bluetoothDesc' },
+  { nameKey: 'identityLab.protected.hardwareName', descriptionKey: 'identityLab.protected.hardwareDesc' },
 ]
 
 watch(selectedPackage, () => loadSelectedProfile())
@@ -347,7 +349,7 @@ async function generateStaticValue(kind: 'android_id' | 'app_instance_id') {
     if (selectedPackage.value !== packageName) return
     if (kind === 'android_id') androidId.value = values.identifiers.android_id
     else appInstanceId.value = values.identifiers.app_instance_id
-    ElMessage.success('Valor sintético de teste gerado')
+    ElMessage.success('{{ t('identityLab.generated') }}')
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
@@ -359,7 +361,7 @@ function generateTestSerial() {
   try {
     serial.value = `DF-TEST-${createIdentitySeedHex().slice(0, 12).toUpperCase()}`
     serialEnabled.value = true
-    ElMessage.success('Serial de teste gerado')
+    ElMessage.success('{{ t('identityLab.serialGenerated') }}')
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   }
@@ -368,9 +370,9 @@ function generateTestSerial() {
 async function copyValue(value: string) {
   try {
     await navigator.clipboard.writeText(value)
-    ElMessage.success('Copiado')
+    ElMessage.success('{{ t('identityLab.copied') }}')
   } catch {
-    error.value = 'Não foi possível copiar. Verifique a permissão da área de transferência do WebView.'
+    error.value = '{{ t('identityLab.errorClipboard') }}'
   }
 }
 
@@ -382,7 +384,7 @@ async function saveProfile() {
     const identity: IdentityConfig = { enabled: profileEnabled.value, mode: mode.value }
     const cleanSerial = serialEnabled.value ? serial.value.trim() : ''
     if (serialEnabled.value && !cleanSerial) {
-      throw new Error('Informe o valor do Serial ou desative esse campo.')
+      throw new Error('{{ t('identityLab.errorSerialRequired') }}')
     }
     if (cleanSerial) identity.serial = cleanSerial
 
@@ -406,7 +408,7 @@ async function saveProfile() {
     }
 
     if (!isIdentityConfigValid(identity)) {
-      throw new Error('Configuração inválida. Confira os formatos dos valores e a seed hexadecimal de 64 caracteres.')
+      throw new Error('{{ t('identityLab.errorInvalidProfile') }}')
     }
 
     const resolvedMatches = configStore.resolvePackageMatchesFor(selectedPackage.value)
@@ -421,7 +423,7 @@ async function saveProfile() {
 
     if (identity.mode === 'seeded') await refreshPreview()
     else preview.value = null
-    ElMessage.success(profileEnabled.value ? 'Perfil salvo e ativo' : 'Perfil salvo e desativado')
+    ElMessage.success(profileEnabled.value ? '{{ t('identityLab.savedActive') }}' : '{{ t('identityLab.savedDisabled') }}')
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
