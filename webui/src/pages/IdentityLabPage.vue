@@ -42,7 +42,17 @@
             <h3>Identidade do aplicativo</h3>
             <p>Escolha valores manuais ou gere identificadores sintéticos determinísticos.</p>
           </div>
-          <span class="state-pill state-pill--green">POR PACOTE / USUÁRIO</span>
+          <span class="state-pill" :class="profileEnabled ? 'state-pill--green' : ''">
+            {{ profileEnabled ? 'PERFIL ATIVO' : 'PERFIL DESATIVADO' }}
+          </span>
+        </div>
+
+        <div class="profile-enable-row">
+          <div>
+            <strong>Ativar perfil geral</strong>
+            <small>Desativado: o Zygisk não aplica o Serial legado deste perfil. Os valores ficam salvos.</small>
+          </div>
+          <el-switch v-model="profileEnabled" />
         </div>
 
         <el-form label-position="top">
@@ -197,6 +207,7 @@ import { parsePackageUser } from '../utils/package'
 const appsStore = useAppsStore()
 const configStore = useConfigStore()
 const selectedPackage = ref('')
+const profileEnabled = ref(true)
 const mode = ref<'static' | 'seeded'>('static')
 const seed = ref('')
 const androidId = ref('')
@@ -210,7 +221,7 @@ const busy = ref(false)
 const saving = ref(false)
 const error = ref('')
 
-const runtimeNotice = 'No runtime atual, somente Legacy Build.SERIAL é consumido por um hook. Android ID e App Instance UUID são armazenados/visualizados como dados sintéticos, mas ainda não são interceptados nas APIs Android.'
+const runtimeNotice = 'Com o perfil ativo, o runtime atual consome somente Legacy Build.SERIAL. Android ID e App Instance UUID são armazenados/visualizados como dados sintéticos, mas ainda não são interceptados nas APIs Android. Desativar o perfil impede também o override do Serial legado.'
 const protectedIdentifiers = [
   { name: 'GSF ID', description: 'Identificador atribuído pelo Google Services Framework; nenhuma interceptação é aplicada.' },
   { name: 'Google Advertising ID (GAID)', description: 'Identificador fornecido pelo Google Play services; não é substituído.' },
@@ -245,6 +256,7 @@ function loadSelectedProfile() {
 
   const resolved = configStore.getPackageConfig(selectedPackage.value)
   const identity = resolved?.identity
+  profileEnabled.value = identity?.enabled !== false
   mode.value = identity?.mode === 'seeded' ? 'seeded' : 'static'
   seed.value = identity?.seed ?? ''
   androidId.value = identity?.android_id ?? ''
@@ -332,7 +344,7 @@ async function saveProfile() {
   saving.value = true
   error.value = ''
   try {
-    const identity: IdentityConfig = { mode: mode.value }
+    const identity: IdentityConfig = { enabled: profileEnabled.value, mode: mode.value }
     const cleanSerial = serialEnabled.value ? serial.value.trim() : ''
     if (serialEnabled.value && !cleanSerial) {
       throw new Error('Informe o valor do Serial ou desative esse campo.')
@@ -372,7 +384,7 @@ async function saveProfile() {
 
     if (identity.mode === 'seeded') await refreshPreview()
     else preview.value = null
-    ElMessage.success('Perfil salvo')
+    ElMessage.success(profileEnabled.value ? 'Perfil salvo e ativo' : 'Perfil salvo e desativado')
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   } finally {
@@ -394,7 +406,7 @@ async function saveProfile() {
 .panel-heading h3{font-size:1rem;margin:0 0 .25rem}
 .state-pill,.runtime-pill,.unavailable-pill{font-size:.62rem;font-weight:700;letter-spacing:.04em;border-radius:99px;padding:.35rem .55rem;background:var(--background);color:var(--text-secondary);white-space:nowrap}
 .state-pill--green{color:#21845b}
-.package-select{width:100%}
+.package-select{width:100%}\n.profile-enable-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.9rem 0 1.1rem;margin-bottom:.4rem;border-bottom:1px solid var(--border)}\n.profile-enable-row strong{display:block;font-size:.9rem}\n.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}
 .field-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
 .hint,.notice,.seed-box p{font-size:.76rem;line-height:1.5;color:var(--text-secondary)}
 .field-card{padding:.9rem;border:1px solid var(--border);border-radius:.8rem;margin:.7rem 0;background:var(--background)}
