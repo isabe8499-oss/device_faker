@@ -200,11 +200,20 @@ const error = ref('')
 
 const runtimeNotice = 'No runtime atual, somente Legacy Build.SERIAL é consumido por um hook. Android ID e App Instance UUID são armazenados/visualizados como dados sintéticos, mas ainda não são interceptados nas APIs Android.'
 const protectedIdentifiers = [
-  { name: 'IMEI / MEID / IMSI / ICCID / SIM Serial', description: 'Identificadores de modem, SIM e assinante; não há alteração de identidade de telecomunicações.' },
-  { name: 'SIM Subscription IDs / número móvel / operador', description: 'Estado da assinatura, número e operadora não são modificados.' },
-  { name: 'Wi-Fi MAC / BSSID / SSID', description: 'Endereços físicos e dados de rede reais permanecem intactos.' },
-  { name: 'Bluetooth MAC', description: 'O endereço do controlador Bluetooth permanece intacto.' },
+  { name: 'GSF ID', description: 'Identificador atribuído pelo Google Services Framework; nenhuma interceptação é aplicada.' },
+  { name: 'Google Advertising ID (GAID)', description: 'Identificador fornecido pelo Google Play services; não é substituído.' },
+  { name: 'App Set ID', description: 'Identificador gerenciado pelo Google Play services; permanece sob controle do serviço.' },
+  { name: 'IMEI / MEID', description: 'Identificadores de equipamento celular protegidos por permissões e serviços de telefonia.' },
+  { name: 'IMSI', description: 'Identificador de assinante da rede móvel; não é gerado nem substituído.' },
+  { name: 'ICCID / SIM Serial ID', description: 'Número de série do cartão SIM; o estado do cartão permanece intacto.' },
+  { name: 'SIM Subscription IDs', description: 'IDs de assinaturas e slots de SIM; sem alteração no serviço de telefonia.' },
+  { name: 'Mobile Number', description: 'Número de linha depende da operadora e do SIM; não é falsificado.' },
+  { name: 'SIM Operator', description: 'Nome e MCC/MNC da operadora não são modificados.' },
+  { name: 'eSIM EID', description: 'Identificador de eSIM ligado ao hardware e ao provisionamento da operadora.' },
   { name: 'MediaDrm / Widevine ID', description: 'Provisionamento DRM, TEE, KeyMint e chaves protegidas permanecem intactos.' },
+  { name: 'Wi-Fi MAC', description: 'Endereço físico da interface; o controlador e o estado global de rede não são alterados.' },
+  { name: 'MAC BSSID / SSID', description: 'Dados do ponto de acesso e da rede conectada não são substituídos.' },
+  { name: 'Bluetooth MAC', description: 'O endereço do controlador Bluetooth permanece intacto.' },
   { name: 'Hardware ID / atestação', description: 'Identidade de hardware e atestação respaldada por hardware permanecem intactas.' },
 ]
 
