@@ -313,7 +313,7 @@ fn build_webui() -> Result<()> {
     // Build the Rust-generated browser module before Vite resolves the WebUI import.
     // wasm-pack and the wasm32-unknown-unknown target must be installed by the caller.
     run_command(npm().args(["run", "build:wasm"]), "npm run build:wasm")?;
-    run_command(npm().arg("install"), "npm install")?;
+    run_command(npm().args(["ci"]), "npm ci")?;
     run_command(npm().args(["run", "build"]), "npm run build")?;
 
     Ok(())
