@@ -262,7 +262,7 @@ manufacturer = "Custom"
 
 ## Identidade por aplicativo — estrutura inicial
 
-O bloco de identidade é opcional e, nesta etapa, é apenas carregado pelo modelo de configuração. Nenhum hook Android consome esses campos ainda.
+O bloco de identidade é opcional. Um campo `serial` válido sobrescreve apenas o campo estático legado `Build.SERIAL` no processo do aplicativo selecionado. Os identificadores derivados continuam sendo dados sintéticos de prévia e não são retornados pelas APIs do Android.
 
 Exemplo:
 
@@ -287,13 +287,13 @@ app_instance_id = "valor-sintetico"
 Campos reconhecidos nesta versão:
 - `mode`: `static` (padrão) ou `seeded`.
 - `seed`: semente fornecida pelo usuário; não deve ser registrada em logs.
-- `android_id`, `serial`, `app_instance_id`: valores explícitos ou sintéticos. Ainda não estão ligados a APIs Android.
+- `android_id` e `app_instance_id`: valores explícitos ou sintéticos que não alteram APIs Android. `serial`: valor literal, aplicado apenas ao campo legado `Build.SERIAL` do aplicativo selecionado.
 
 Campos ausentes ou vazios não solicitam alteração. Chaves futuras desconhecidas dentro de `identity` são ignoradas para manter compatibilidade.
 
 **Precedência:** se uma entrada `[[apps]]` corresponder ao pacote, o bloco `identity` dessa entrada substitui o bloco do template por inteiro. Se a entrada direta não tiver `identity`, o template não será herdado. Sem entrada direta, vale o bloco do primeiro template correspondente.
 
-> Estes campos não significam que IMEI, IMSI, ICCID, GAID, Widevine, MAC ou atestação de hardware possam ser alterados. Esses caminhos continuam fora do escopo até existir uma implementação específica e validada.
+> A substituição de `Build.SERIAL` não altera o número de série real nem `Build.getSerial()`. IMEI, IMSI, ICCID, GAID, Widevine, MAC e atestação de hardware permanecem fora do escopo..
 
 
 ## Identity schema v1 (configuration, synthetic generator and limited runtime field)
