@@ -77,6 +77,7 @@ import { toast } from 'kernelsu-alt'
 import type { Template } from '../../types'
 import { provideDeviceFakerForm } from '../../composables/useDeviceFakerForm'
 import DeviceFakerFormFields from '../shared/DeviceFakerFormFields.vue'
+import { isIdentityConfigValid } from '../../utils/identity'
 
 const props = defineProps<{
   modelValue: boolean
@@ -168,6 +169,14 @@ async function saveTemplate() {
   }
 
   templateNameInput.value = name
+
+  const originalIdentity = props.templateData?.identity ?? null
+  const currentIdentity = formData.value.identity ?? null
+  const identityChanged = JSON.stringify(currentIdentity) !== JSON.stringify(originalIdentity)
+  if (identityChanged && !isIdentityConfigValid(formData.value.identity)) {
+    toast(t('identity.invalid_config'))
+    return
+  }
 
   const originalTemplateName = props.templateName?.trim() || ''
   const isRenaming =
