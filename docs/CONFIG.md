@@ -280,8 +280,8 @@ package = "com.example.other"
 
 [apps.identity]
 mode = "seeded"
-seed = "uma-semente-local-longa"
-app_instance_id = "valor-sintetico"
+seed = "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+app_instance_id = "6a8999ce-3a4e-8c23-aa6b-c80445b6bd7c"
 ```
 
 Campos reconhecidos nesta versão:
@@ -340,4 +340,4 @@ device_faker_cli identity generate --package com.example.game --user-id 0 \
   --seed 5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a --json
 ```
 
-A saída inclui a seed para reprodutibilidade. Trate-a como segredo local: não publique, não envie para logs e não reutilize entre dispositivos quando quiser evitar correlação. A CLI apenas gera um bloco TOML/JSON; não edita nem sobrescreve `config.toml`. Os campos gerados são sintéticos e ainda não são consumidos por hooks Android.
+A saída inclui a seed para reprodutibilidade. Trate-a como segredo local: não publique, não envie para logs e não reutilize entre dispositivos quando quiser evitar correlação. A CLI apenas gera um bloco TOML/JSON; não edita nem sobrescreve `config.toml`. Os campos gerados `android_id` e `app_instance_id` são sintéticos e ainda não são consumidos por hooks Android; o campo literal `serial`, quando configurado separadamente, é aplicado somente a `Build.SERIAL` no processo selecionado.
