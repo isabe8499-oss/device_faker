@@ -231,7 +231,8 @@ export const useOnlineTemplatesStore = defineStore('online-templates', () => {
     ]
     const populatedBuildFields = buildFields.filter((value) => {
       if (typeof value === 'number') return Number.isFinite(value) && value > 0
-      return typeof value === 'string' && value.trim().length > 0
+      if (typeof value === 'string') return value.trim().length > 0 && value !== '__DELETE__'
+      return false
     }).length
 
     return populatedBuildFields >= 3
@@ -273,6 +274,11 @@ export const useOnlineTemplatesStore = defineStore('online-templates', () => {
     const brands = new Set<string>()
 
     for (const item of indexItems.value) {
+      const detailState = detailStateById.value[item.id]
+      if (!isReadyState(detailState) || !isCompleteTemplate(detailState.detail.template)) {
+        continue
+      }
+
       if (selectedCategory.value !== 'all' && item.category !== selectedCategory.value) {
         continue
       }
