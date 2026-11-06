@@ -135,6 +135,7 @@ import { useAppsStore } from '../stores/apps'
 import { useConfigStore } from '../stores/config'
 import { deriveSyntheticIdentityPreview, createIdentitySeedHex, isIdentityConfigValid, type SyntheticIdentityPreview } from '../utils/identity'
 import type { IdentityConfig } from '../types'
+import { parsePackageUser } from '../utils/package'
 
 const appsStore = useAppsStore()
 const configStore = useConfigStore()
@@ -191,7 +192,8 @@ function loadSelectedProfile() {
 async function refreshPreview() {
   if (!selectedPackage.value || !seed.value) return
   try {
-    preview.value = await deriveSyntheticIdentityPreview(selectedPackage.value, 0, seed.value)
+    const scope = parsePackageUser(selectedPackage.value)
+    preview.value = await deriveSyntheticIdentityPreview(scope.base, scope.userId, seed.value)
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   }
