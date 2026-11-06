@@ -601,7 +601,7 @@ pub struct DeviceTemplate {
     /// true 时 getprop（独立进程）和进程内读取一致，适用于属性一致性对比检测
     #[serde(default)]
     pub companion_resetprop: Option<bool>,
-    /// Optional process-scoped identity configuration (not yet consumed by runtime hooks).
+    /// Optional process-scoped identity configuration. A validated `serial` may override only the legacy app-local `Build.SERIAL` field; the generated ID fields remain configuration/generator data.
     #[serde(default, deserialize_with = "deserialize_identity_block")]
     pub identity: Option<IdentityConfig>,
 }
@@ -668,7 +668,7 @@ pub struct AppConfig {
     /// true 时 getprop（独立进程）和进程内读取一致，适用于属性一致性对比检测
     #[serde(default)]
     pub companion_resetprop: Option<bool>,
-    /// Optional process-scoped identity configuration (not yet consumed by runtime hooks).
+    /// Optional process-scoped identity configuration. A validated `serial` may override only the legacy app-local `Build.SERIAL` field; the generated ID fields remain configuration/generator data.
     #[serde(default, deserialize_with = "deserialize_identity_block")]
     pub identity: Option<IdentityConfig>,
 }
