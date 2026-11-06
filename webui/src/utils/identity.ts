@@ -15,7 +15,7 @@ export interface SyntheticIdentityPreview {
 type IdentityWasmModule = typeof import('../wasm/pkg/identity_wasm')
 
 let wasmModulePromise: Promise<IdentityWasmModule> | null = null
-let wasmInitPromise: Promise<void> | null = null
+let wasmInitPromise: Promise<unknown> | null = null
 
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
