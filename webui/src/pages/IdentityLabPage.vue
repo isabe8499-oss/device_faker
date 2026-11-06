@@ -446,7 +446,8 @@ async function saveProfile() {
 .package-select{width:100%}
 .profile-enable-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.9rem 0 1.1rem;margin-bottom:.4rem;border-bottom:1px solid var(--border)}
 .profile-enable-row strong{display:block;font-size:.9rem}
-.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}\n.scope-line{font-size:.74rem!important;margin-top:.3rem!important;color:var(--text-secondary)}
+.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}
+.scope-line{font-size:.74rem!important;margin-top:.3rem!important;color:var(--text-secondary)}
 .field-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
 .hint,.notice,.seed-box p{font-size:.76rem;line-height:1.5;color:var(--text-secondary)}
 .field-card{padding:.9rem;border:1px solid var(--border);border-radius:.8rem;margin:.7rem 0;background:var(--background)}
