@@ -406,7 +406,10 @@ async function saveProfile() {
 .panel-heading h3{font-size:1rem;margin:0 0 .25rem}
 .state-pill,.runtime-pill,.unavailable-pill{font-size:.62rem;font-weight:700;letter-spacing:.04em;border-radius:99px;padding:.35rem .55rem;background:var(--background);color:var(--text-secondary);white-space:nowrap}
 .state-pill--green{color:#21845b}
-.package-select{width:100%}\n.profile-enable-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.9rem 0 1.1rem;margin-bottom:.4rem;border-bottom:1px solid var(--border)}\n.profile-enable-row strong{display:block;font-size:.9rem}\n.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}
+.package-select{width:100%}
+.profile-enable-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.9rem 0 1.1rem;margin-bottom:.4rem;border-bottom:1px solid var(--border)}
+.profile-enable-row strong{display:block;font-size:.9rem}
+.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}
 .field-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
 .hint,.notice,.seed-box p{font-size:.76rem;line-height:1.5;color:var(--text-secondary)}
 .field-card{padding:.9rem;border:1px solid var(--border);border-radius:.8rem;margin:.7rem 0;background:var(--background)}
