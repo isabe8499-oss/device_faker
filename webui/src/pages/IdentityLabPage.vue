@@ -312,7 +312,11 @@ async function refreshPreview() {
     preview.value = result
     error.value = ''
   } catch (cause) {
-    if (requestId !== previewRequestId || packageName !== selectedPackage.value) return
+    if (
+      requestId !== previewRequestId ||
+      packageName !== selectedPackage.value ||
+      seedHex !== seed.value
+    ) return
     preview.value = null
     error.value = cause instanceof Error ? cause.message : String(cause)
   }
