@@ -5,7 +5,7 @@ use jni::{
     strings::JNIStr,
 };
 
-use crate::config::{MergedAppConfig, NumberSetting};
+use crate::config::{IdentityConfig, MergedAppConfig, NumberSetting};
 
 /// Build 字段的有效伪装值：与 config::field_value 相同的归一化——
 /// 未设置/空串/`__DELETE__` 返回 None（跳过 hook），`__EMPTY__` 归一化为空串。
@@ -15,6 +15,29 @@ fn field_str(field: &Option<String>) -> Option<&str> {
             Some(if value == "__EMPTY__" { "" } else { value })
         }
         _ => None,
+    }
+}
+
+/// Resolve a validated app-local legacy Build.SERIAL value.
+///
+/// Whitespace-only strings are treated as unset, matching IdentityConfig's
+/// configured-field semantics. The existing special markers are preserved:
+/// __EMPTY__ requests an empty field and __DELETE__ leaves the platform value.
+fn legacy_build_serial(identity: Option<&IdentityConfig>) -> Option<&str> {
+    let identity = identity?;
+    if identity.validate().is_err() {
+        return None;
+    }
+
+    let serial = identity.serial.as_deref()?;
+    if serial.trim().is_empty() {
+        return None;
+    }
+
+    match serial {
+        "__DELETE__" => None,
+        "__EMPTY__" => Some(""),
+        value => Some(value),
     }
 }
 
@@ -29,10 +52,7 @@ pub fn hook_build_fields(
         // Build.SERIAL is the deprecated app-process static field. It is distinct
         // from Build.getSerial(), which calls DeviceIdentifiersPolicyService over
         // Binder and is intentionally not modified by this process-local hook.
-        if let Some(identity) = merged_config.identity.as_ref()
-            && identity.validate().is_ok()
-            && let Some(serial) = field_str(&identity.serial)
-        {
+        if let Some(serial) = legacy_build_serial(merged_config.identity.as_ref()) {
             set_build_field(jenv, &build_class, jni_str!("SERIAL"), serial)
                 .map_err(|_e| jni::errors::Error::JniCall(jni::errors::JniError::Unknown))?;
         }
@@ -182,4 +202,59 @@ fn set_build_int_field(
         .with_context(|| "Failed to set field".to_string())?;
 
     Ok(())
+}
+
+
+#[cfg(test)]
+mod identity_serial_tests {
+    use super::legacy_build_serial;
+    use crate::config::{IdentityConfig, IdentityMode};
+
+    fn static_serial(value: &str) -> IdentityConfig {
+        IdentityConfig {
+            mode: IdentityMode::Static,
+            serial: Some(value.to_owned()),
+            ..IdentityConfig::default()
+        }
+    }
+
+    #[test]
+    fn valid_serial_is_selected_for_the_legacy_field() {
+        let identity = static_serial("SERIAL-TEST-001");
+        assert_eq!(legacy_build_serial(Some(&identity)), Some("SERIAL-TEST-001"));
+    }
+
+    #[test]
+    fn whitespace_only_serial_is_treated_as_unset() {
+        let identity = static_serial("   ");
+        assert_eq!(legacy_build_serial(Some(&identity)), None);
+    }
+
+    #[test]
+    fn invalid_identity_block_is_ignored_as_a_whole() {
+        let identity = IdentityConfig {
+            mode: IdentityMode::Static,
+            serial: Some("bad\\nserial".to_owned()),
+            android_id: Some("not-hex".to_owned()),
+            ..IdentityConfig::default()
+        };
+        assert_eq!(legacy_build_serial(Some(&identity)), None);
+    }
+
+    #[test]
+    fn empty_marker_is_supported_and_delete_marker_is_ignored() {
+        assert_eq!(
+            legacy_build_serial(Some(&static_serial("__EMPTY__"))),
+            Some("")
+        );
+        assert_eq!(
+            legacy_build_serial(Some(&static_serial("__DELETE__"))),
+            None
+        );
+    }
+
+    #[test]
+    fn absent_identity_does_not_override_the_field() {
+        assert_eq!(legacy_build_serial(None), None);
+    }
 }
