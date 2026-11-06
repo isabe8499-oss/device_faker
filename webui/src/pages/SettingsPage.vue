@@ -160,7 +160,7 @@ const languageOptions = computed(() => [
   { value: 'zh', label: t('settings.display.language.zh') },
   { value: 'en', label: t('settings.display.language.en') },
   { value: 'tr', label: t('settings.display.language.tr') },
-  { value: 'pt-BR', label: t('settings.display.language.ptBR') },
+  { value: 'pt-BR', label: 'Português (Brasil)' },
 ])
 
 async function onDebugChange(value: boolean) {
