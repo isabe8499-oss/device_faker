@@ -1,5 +1,5 @@
 import { computed, defineAsyncComponent, defineComponent, h, ref } from 'vue'
-import { FileText, House, Settings, Smartphone } from '@lucide/vue'
+import { FileText, Fingerprint, House, Settings, Smartphone } from '@lucide/vue'
 import AppsPageSkeleton from '../components/apps/AppsPageSkeleton.vue'
 import { useAppsStore } from '../stores/apps'
 import { useConfigStore } from '../stores/config'
@@ -11,13 +11,14 @@ import StatusPage from '../pages/StatusPage.vue'
 type AppsPageComponent = (typeof import('../pages/AppsPage.vue'))['default']
 type TemplatePageComponent = (typeof import('../pages/TemplatePage.vue'))['default']
 type SettingsPageComponent = (typeof import('../pages/SettingsPage.vue'))['default']
+type IdentityLabPageComponent = (typeof import('../pages/IdentityLabPage.vue'))['default']
 
-export const PAGE_ORDER: PageId[] = ['home', 'templates', 'apps', 'settings']
+export const PAGE_ORDER: PageId[] = ['home', 'templates', 'apps', 'identity', 'settings']
 export const PAGE_INDEX_BY_ID: Record<PageId, number> = {
   home: 0,
   templates: 1,
   apps: 2,
-  settings: 3,
+  identity: 3,\n  settings: 4,
 }
 
 const AsyncPagePlaceholder = defineComponent({
@@ -34,7 +35,7 @@ const AsyncPagePlaceholder = defineComponent({
 
 let appsPageLoader: Promise<AppsPageComponent> | null = null
 let templatePageLoader: Promise<TemplatePageComponent> | null = null
-let settingsPageLoader: Promise<SettingsPageComponent> | null = null
+let settingsPageLoader: Promise<SettingsPageComponent> | null = null\nlet identityLabPageLoader: Promise<IdentityLabPageComponent> | null = null
 let idleWarmupTimer: number | null = null
 let idleWarmupId: number | null = null
 let appDataWarmupTimer: number | null = null
@@ -74,6 +75,18 @@ function preloadSettingsPage() {
       })
   }
   return settingsPageLoader
+}
+
+function preloadIdentityLabPage() {
+  if (!identityLabPageLoader) {
+    identityLabPageLoader = import('../pages/IdentityLabPage.vue')
+      .then((m) => m.default)
+      .catch((e) => {
+        identityLabPageLoader = null
+        throw e
+      })
+  }
+  return identityLabPageLoader
 }
 
 export function usePageNavigation(opts?: {
