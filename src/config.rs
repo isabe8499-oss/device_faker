@@ -300,8 +300,9 @@ fn expand_known_custom_property(map: &mut HashMap<String, String>, key: &str, va
     }
 }
 
-/// Identity values are opt-in and are only configuration data at this stage.
-/// No hook consumes these fields until a separately validated runtime path exists.
+/// Identity values are opt-in. The literal legacy serial has a narrow app-local
+/// Build.SERIAL field override; generated identifiers remain configuration/preview
+/// data until their own Android API integration is separately validated.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum IdentityMode {
     #[default]
