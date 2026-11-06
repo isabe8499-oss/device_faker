@@ -58,10 +58,8 @@ jobs:
         with:
           version: 'v0.15.1'
 
-      - name: Build shared identity WebAssembly bridge
-        run: |
-          rustup target add wasm32-unknown-unknown
-          wasm-pack build identity-wasm --target web --release --out-dir ../webui/src/wasm/pkg --out-name identity_wasm
+      - name: Add WebAssembly Rust target
+        run: rustup target add wasm32-unknown-unknown
 
       - name: Test shared identity WebAssembly bridge
         run: cargo test --manifest-path identity-wasm/Cargo.toml
@@ -79,12 +77,6 @@ jobs:
           sudo apt install -y gcc-multilib
           cargo install cargo-ndk --locked
 
-      - name: Type check webui
-        run: |
-          cd webui
-          npm ci
-          npm run type-check
-
       - name: Test identity core
         run: cargo test --locked -p identity-core
 
@@ -97,6 +89,11 @@ jobs:
       - name: Build device_faker
         run: |
           cargo run --package xtask -- build -r
+
+      - name: Type check webui
+        run: |
+          cd webui
+          npm run type-check
 
       - name: Install UPX
         run: |
