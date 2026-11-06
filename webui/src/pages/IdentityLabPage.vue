@@ -202,7 +202,7 @@ import {
   type SyntheticIdentityPreview,
 } from '../utils/identity'
 import type { IdentityConfig } from '../types'
-import { parsePackageUser } from '../utils/package'
+import { configWriteKey, parsePackageUser } from '../utils/package'
 
 const appsStore = useAppsStore()
 const configStore = useConfigStore()
@@ -400,10 +400,12 @@ async function saveProfile() {
       throw new Error('Configuração inválida. Confira os formatos dos valores e a seed hexadecimal de 64 caracteres.')
     }
 
-    const existingApp = configStore.getApps().find((app) => app.package === selectedPackage.value)
+    const resolvedMatches = configStore.resolvePackageMatchesFor(selectedPackage.value)
+    const writeKey = configWriteKey(selectedPackage.value, resolvedMatches?.key)
+    const existingApp = configStore.getApps().find((app) => app.package === writeKey)
     configStore.setApp({
       ...(existingApp ?? {}),
-      package: selectedPackage.value,
+      package: writeKey,
       identity,
     })
     await configStore.saveConfig()
