@@ -154,6 +154,19 @@
       </div>
     </div>
 
+    <div
+      v-else-if="onlineTemplatesStore.filteredRecords.length === 0 && onlineTemplatesStore.isQualityScanRunning"
+      class="full-state"
+    >
+      <div class="state-card">
+        <LoaderCircle :size="26" class="spin-icon" />
+        <p>{{ t('templates.online.loading') }}</p>
+        <div class="state-grid">
+          <span v-for="index in 6" :key="index" class="state-skeleton"></span>
+        </div>
+      </div>
+    </div>
+
     <div v-else-if="onlineTemplatesStore.filteredRecords.length === 0" class="full-state">
       <div class="state-card">
         <Database :size="26" />
