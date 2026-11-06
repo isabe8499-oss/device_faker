@@ -305,7 +305,7 @@ package = "com.example.game"
 
 [apps.identity]
 mode = "seeded"
-seed = "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+seed = "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
 
 [apps.identity.generate]
 android_id = true
