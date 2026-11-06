@@ -8,7 +8,7 @@
 mod generator;
 mod scope;
 
-pub use generator::{DerivationError, generate_app_instance_id};
+pub use generator::{DerivationError, decode_seed_hex, generate_android_id, generate_app_instance_id};
 pub use scope::{AppScope, ScopeError};
 
 #[cfg(test)]

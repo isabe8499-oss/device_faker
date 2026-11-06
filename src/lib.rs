@@ -150,15 +150,22 @@ impl MyModule {
         env: &mut EnvUnowned,
         args: &mut <V4 as ZygiskRaw>::AppSpecializeArgs,
     ) -> anyhow::Result<()> {
-        let (package_name, user_id) = env
-            .with_env(|_jenv| -> Result<(String, u32), jni::errors::Error> {
+        let resolved_scope = env
+            .with_env(|_jenv| -> Result<Option<(String, u32)>, jni::errors::Error> {
                 let app_data_dir = args.app_data_dir.to_string();
                 let nice_name = args.nice_name.to_string();
-                let package_name = app_scope::resolve_package_name(&app_data_dir, &nice_name)
-                    .ok_or(jni::errors::Error::JniCall(jni::errors::JniError::Unknown))?;
-                Ok((package_name, app_scope::android_user_id(*args.uid)))
+                let package_name = app_scope::resolve_package_name(&app_data_dir, &nice_name);
+                Ok(package_name.map(|package_name| {
+                    (package_name, app_scope::android_user_id(*args.uid))
+                }))
             })
             .resolve::<ThrowRuntimeExAndDefault>();
+
+        let Some((package_name, user_id)) = resolved_scope else {
+            warn!("Unable to resolve app package during specialization; unloading module");
+            api.set_option(ZygiskOption::DlCloseModuleLibrary);
+            return Ok(());
+        };
         let package_with_user = format!("{package_name}@{user_id}");
 
         // companion 侧现在自己管理会话状态和恢复逻辑；
@@ -217,6 +224,18 @@ impl MyModule {
             api.set_option(ZygiskOption::DlCloseModuleLibrary);
             return Ok(());
         };
+
+        if let Some(identity) = merged.identity.as_ref() {
+            match identity.validate() {
+                Ok(()) if config.debug => info!(
+                    "Identity config schema valid for {package_name}; runtime identity hooks are not enabled"
+                ),
+                Err(reason) if config.debug => warn!(
+                    "Identity config rejected for {package_name}; identity settings ignored: {reason}"
+                ),
+                _ => {}
+            }
+        }
 
         if merged.force_denylist_unmount {
             api.set_option(ZygiskOption::ForceDenylistUnmount);

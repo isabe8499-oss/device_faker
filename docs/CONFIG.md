@@ -294,3 +294,32 @@ Campos ausentes ou vazios não solicitam alteração. Chaves futuras desconhecid
 **Precedência:** se uma entrada `[[apps]]` corresponder ao pacote, o bloco `identity` dessa entrada substitui o bloco do template por inteiro. Se a entrada direta não tiver `identity`, o template não será herdado. Sem entrada direta, vale o bloco do primeiro template correspondente.
 
 > Estes campos não significam que IMEI, IMSI, ICCID, GAID, Widevine, MAC ou atestação de hardware possam ser alterados. Esses caminhos continuam fora do escopo até existir uma implementação específica e validada.
+
+
+## Identity schema v1 (configuration and synthetic generator only)
+
+Identity configuration is optional under either `[templates.<name>.identity]` or `[apps.identity]`.
+
+```toml
+[[apps]]
+package = "com.example.game"
+
+[apps.identity]
+mode = "seeded"
+seed = "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+
+[apps.identity.generate]
+android_id = true
+app_instance_id = true
+```
+
+- `seed`: exactly 64 hexadecimal characters (32 bytes). Use a private, independently generated seed per device; never put it in logs or public backups.
+- `generate.android_id`: produces a synthetic, app-scoped 16-character hexadecimal test value in `identity-core`.
+- `generate.app_instance_id`: produces a synthetic app-instance UUIDv8.
+- A literal field and its corresponding `generate.*` flag cannot both be set.
+- `serial` is literal-only in this schema; no OEM serial number is generated.
+- Static Android-ID-shaped values accept 1–16 hexadecimal characters, reflecting the AOSP hex representation. This does not mean `Settings.Secure.ANDROID_ID` is changed.
+- Unknown keys remain ignored; an absent identity block leaves legacy configurations unchanged.
+- A direct `[[apps]]` record replaces the template identity block as a whole. If no identity block is present on the direct record, the template identity is not inherited.
+
+**Runtime status:** these fields are parsed and validated, and the pure Rust generator is available for tests. No Android API consumes the generated values yet. In particular, the module does not currently intercept `Settings.Secure.ANDROID_ID`, `Build.getSerial()`, Telephony, GAID, MediaDrm, MAC addresses, or Key Attestation. Do not interpret a generated value as proof that an Android API returns it.

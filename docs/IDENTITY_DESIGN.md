@@ -156,3 +156,18 @@ The Rust configuration model now accepts optional identity blocks on both templa
 The initial schema recognizes mode (static / seeded), seed, android_id, serial, and app_instance_id. Unknown keys are ignored. Empty strings are treated as unset. Seeded mode requires a non-empty seed when a supported value is configured.
 
 This is configuration plumbing only. No Android hook, system property, Telephony API, MediaDrm, GAID, MAC, or attestation path consumes these fields yet. Host tests cover legacy config parsing, template selection, direct-app atomic replacement, unknown-key tolerance, and seeded-mode validation.
+
+
+## 14. Identity schema v1 and synthetic generator
+
+The configuration model recognizes `IdentityGenerate` with two explicit synthetic outputs:
+- `android_id`: a 64-bit Android-ID-shaped test value, serialized as 16 lowercase hexadecimal characters by the generator.
+- `app_instance_id`: a Device Faker UUIDv8 under RFC 9562.
+
+The seed is 32 bytes, written in TOML as exactly 64 hexadecimal characters. HMAC-SHA-256 uses separate domain strings for each output and includes a length-prefixed package name plus Android user ID. The same seed/scope/output kind is deterministic; different package names and users are cryptographically domain-separated.
+
+Static `android_id` accepts 1–16 hexadecimal characters because AOSP's `Long.toHexString` representation is not guaranteed to be zero-padded. Serial is validated as printable ASCII with a project-local 1–128 byte limit and is never generated.
+
+The runtime now treats an unresolved package scope as `None`, requests module unload for that process, and does not query a configuration key such as `@0`. When a selected record contains an identity block, schema validation is performed for diagnostics only; invalid identity data is reported only when debug logging is enabled, and no identity hook consumes either valid or invalid values.
+
+**Important:** generated values remain synthetic data. They do not alter `Settings.Secure.ANDROID_ID`, the device serial, telephony state, GAID, DRM provisioning, MAC controller addresses, or hardware-backed attestation. There is no Android API interception enabled by this change.
