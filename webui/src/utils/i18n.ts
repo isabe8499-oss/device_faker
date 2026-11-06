@@ -1359,8 +1359,10 @@ const translationCache = new Map<string, string>()
 
 function resolveMessage(localeKey: Locale, path: string): string | null {
   const value = getNestedValue(messages[localeKey], path)
-  // 与旧实现一致:空字符串/非字符串视为缺失
-  return typeof value === 'string' && value ? value : null
+  if (typeof value === 'string' && value) return value
+  // Keep pt-BR usable while its full catalogue is translated.
+  const fallback = getNestedValue(messages.en, path)
+  return typeof fallback === 'string' && fallback ? fallback : null
 }
 
 export function useI18n() {
