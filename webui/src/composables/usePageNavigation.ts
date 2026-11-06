@@ -18,7 +18,8 @@ export const PAGE_INDEX_BY_ID: Record<PageId, number> = {
   home: 0,
   templates: 1,
   apps: 2,
-  identity: 3,\n  settings: 4,
+  identity: 3,
+  settings: 4,
 }
 
 const AsyncPagePlaceholder = defineComponent({
