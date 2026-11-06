@@ -25,7 +25,7 @@ fn field_str(field: &Option<String>) -> Option<&str> {
 /// __EMPTY__ requests an empty field and __DELETE__ leaves the platform value.
 fn legacy_build_serial<'a>(identity: Option<&'a IdentityConfig>) -> Option<&'a str> {
     let identity = identity?;
-    if identity.validate().is_err() {
+    if !identity.is_enabled() || identity.validate().is_err() {
         return None;
     }
 
@@ -251,6 +251,17 @@ mod identity_serial_tests {
             legacy_build_serial(Some(&static_serial("__DELETE__"))),
             None
         );
+    }
+
+    #[test]
+    fn disabled_profile_does_not_override_legacy_serial() {
+        let identity = IdentityConfig {
+            enabled: Some(false),
+            mode: IdentityMode::Static,
+            serial: Some("SERIAL-TEST-001".to_owned()),
+            ..IdentityConfig::default()
+        };
+        assert_eq!(legacy_build_serial(Some(&identity)), None);
     }
 
     #[test]
