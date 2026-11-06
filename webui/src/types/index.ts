@@ -155,7 +155,7 @@ export interface InstalledApp {
 // 设置接口
 export interface Settings {
   theme: 'system' | 'light' | 'dark'
-  language: 'system' | 'zh' | 'en' | 'tr'
+  language: 'system' | 'zh' | 'en' | 'tr' | 'pt-BR'
   showSystemApps: boolean
   onlineTemplateSource: OnlineTemplateSource
 }
