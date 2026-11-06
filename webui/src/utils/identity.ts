@@ -95,7 +95,7 @@ export async function deriveSyntheticIdentityPreview(
 
 /** Mirror the Rust IdentityConfig::validate rules before the WebUI persists a profile. */
 export function isIdentityConfigValid(profile: IdentityConfig | undefined): boolean {
-  if (!profile) return true
+  if (!profile || profile.enabled === false) return true
 
   const mode = profile.mode ?? 'static'
   if (mode !== 'static' && mode !== 'seeded') return false
