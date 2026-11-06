@@ -302,14 +302,103 @@ fn expand_known_custom_property(map: &mut HashMap<String, String>, key: &str, va
 
 /// Identity values are opt-in and are only configuration data at this stage.
 /// No hook consumes these fields until a separately validated runtime path exists.
-#[derive(Debug, Clone, Copy, Deserialize, Default, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum IdentityMode {
-    /// Use only literal values supplied in the configuration.
     #[default]
     Static,
-    /// Generate explicitly selected synthetic values from a 32-byte seed.
     Seeded,
+    /// Unknown or wrongly typed mode. Kept local to this block so the rest of
+    /// config.toml remains usable; validation rejects this identity only.
+    Unsupported,
+}
+
+impl<'de> Deserialize<'de> for IdentityMode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct ModeVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for ModeVisitor {
+            type Value = IdentityMode;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("identity mode string: static or seeded")
+            }
+
+            fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
+                Ok(match value {
+                    "static" => IdentityMode::Static,
+                    "seeded" => IdentityMode::Seeded,
+                    _ => IdentityMode::Unsupported,
+                })
+            }
+
+            fn visit_string<E: serde::de::Error>(self, value: String) -> Result<Self::Value, E> {
+                self.visit_str(&value)
+            }
+
+            fn visit_bool<E: serde::de::Error>(self, _value: bool) -> Result<Self::Value, E> {
+                Ok(IdentityMode::Unsupported)
+            }
+
+            fn visit_i64<E: serde::de::Error>(self, _value: i64) -> Result<Self::Value, E> {
+                Ok(IdentityMode::Unsupported)
+            }
+
+            fn visit_u64<E: serde::de::Error>(self, _value: u64) -> Result<Self::Value, E> {
+                Ok(IdentityMode::Unsupported)
+            }
+
+            fn visit_f64<E: serde::de::Error>(self, _value: f64) -> Result<Self::Value, E> {
+                Ok(IdentityMode::Unsupported)
+            }
+        }
+
+        deserializer.deserialize_any(ModeVisitor)
+    }
+}
+
+fn deserialize_identity_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = toml::Value::deserialize(deserializer)?;
+    Ok(value.as_str().map(str::to_owned))
+}
+
+fn deserialize_identity_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = toml::Value::deserialize(deserializer)?;
+    Ok(value.as_bool().unwrap_or(false))
+}
+
+fn deserialize_identity_generate<'de, D>(
+    deserializer: D,
+) -> Result<IdentityGenerate, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = toml::Value::deserialize(deserializer)?;
+    if !value.is_table() {
+        return Ok(IdentityGenerate::default());
+    }
+    Ok(value.try_into().unwrap_or_default())
+}
+
+fn deserialize_identity_block<'de, D>(
+    deserializer: D,
+) -> Result<Option<IdentityConfig>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = toml::Value::deserialize(deserializer)?;
+    if !value.is_table() {
+        return Ok(None);
+    }
+    Ok(value.try_into().ok())
 }
 
 /// Identifiers that may be derived by identity-core. These values are synthetic
@@ -317,7 +406,9 @@ pub enum IdentityMode {
 #[derive(Debug, Clone, Copy, Deserialize, Default, PartialEq, Eq)]
 #[serde(default)]
 pub struct IdentityGenerate {
+    #[serde(deserialize_with = "deserialize_identity_bool")]
     pub android_id: bool,
+    #[serde(deserialize_with = "deserialize_identity_bool")]
     pub app_instance_id: bool,
 }
 
@@ -327,21 +418,22 @@ impl IdentityGenerate {
     }
 }
 
-/// Optional, app-scoped identity configuration. Unknown fields are ignored by
-/// Serde, preserving compatibility with older configurations and future keys.
+/// Optional, app-scoped identity configuration. Unknown keys and malformed
+/// individual field types are ignored so a bad identity setting cannot invalidate
+/// unrelated Build/property configuration.
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[serde(default)]
 pub struct IdentityConfig {
-    #[serde(default)]
     pub mode: IdentityMode,
-    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_identity_string")]
     pub seed: Option<String>,
-    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_identity_string")]
     pub android_id: Option<String>,
-    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_identity_string")]
     pub serial: Option<String>,
-    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_identity_string")]
     pub app_instance_id: Option<String>,
-    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_identity_generate")]
     pub generate: IdentityGenerate,
 }
 
@@ -391,9 +483,12 @@ impl IdentityConfig {
     }
 
     /// Validates syntax and mode consistency only. This does not install hooks
-    /// or claim that Settings.Secure, Build, Telephony, or other Android APIs
-    /// return these values.
+    /// or claim that any Android platform API returns these values.
     pub fn validate(&self) -> std::result::Result<(), &'static str> {
+        if self.mode == IdentityMode::Unsupported {
+            return Err("identity.mode must be static or seeded");
+        }
+
         let android_id_set = identity_value_is_set(self.android_id.as_deref());
         let serial_set = identity_value_is_set(self.serial.as_deref());
         let app_instance_id_set = identity_value_is_set(self.app_instance_id.as_deref());
@@ -507,7 +602,7 @@ pub struct DeviceTemplate {
     #[serde(default)]
     pub companion_resetprop: Option<bool>,
     /// Optional process-scoped identity configuration (not yet consumed by runtime hooks).
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_identity_block")]
     pub identity: Option<IdentityConfig>,
 }
 
@@ -574,7 +669,7 @@ pub struct AppConfig {
     #[serde(default)]
     pub companion_resetprop: Option<bool>,
     /// Optional process-scoped identity configuration (not yet consumed by runtime hooks).
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_identity_block")]
     pub identity: Option<IdentityConfig>,
 }
 
@@ -1240,4 +1335,47 @@ mod identity_config_tests {
         };
         assert!(identity.validate().is_err());
     }
+    #[test]
+    fn malformed_identity_field_types_do_not_break_other_app_config() {
+        let config = Config::from_toml(r#"
+            [[apps]]
+            package = "com.example.game"
+            brand = "Example"
+
+            [apps.identity]
+            mode = 42
+            seed = 123
+            android_id = 12345
+            serial = ["not", "a", "string"]
+            app_instance_id = false
+
+            [apps.identity.generate]
+            android_id = "true"
+            app_instance_id = 1
+        "#).expect("malformed identity fields must not reject the app config");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("unrelated app configuration must remain available");
+        assert_eq!(merged.brand.as_deref(), Some("Example"));
+        let identity = merged.identity.expect("identity table should remain inspectable");
+        assert_eq!(identity.mode, IdentityMode::Unsupported);
+        assert!(!identity.is_configured());
+        assert_eq!(identity.validate(), Err("identity.mode must be static or seeded"));
+    }
+
+    #[test]
+    fn non_table_identity_block_is_ignored_without_rejecting_app_config() {
+        let config = Config::from_toml(r#"
+            [[apps]]
+            package = "com.example.game"
+            brand = "Example"
+            identity = "not-a-table"
+        "#).expect("non-table identity should be ignored");
+
+        let merged = config.get_merged_config("com.example.game")
+            .expect("app config should still resolve");
+        assert_eq!(merged.brand.as_deref(), Some("Example"));
+        assert!(merged.identity.is_none());
+    }
+
 }
