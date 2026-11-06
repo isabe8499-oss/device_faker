@@ -183,6 +183,6 @@ For a template preview, the first assigned package is used as the preview scope.
 
 The WebUI displays derived values as synthetic previews and stores only the seeded profile (seed + generation flags) in TOML. Static serial values remain manual input only. The UI never writes a previewed Android-ID-shaped value or UUID into a static identifier field automatically.
 
-Build locally from `webui/` with `npm run build:wasm` before `npm run type-check`, `npm run dev`, or `npm run build`. CI builds the WASM package before checking and bundling the WebUI. Generated files under `webui/src/wasm/pkg` are build outputs, not the source of truth.
+For a local build, install `wasm-pack` v0.15.1 and add the Rust target with `rustup target add wasm32-unknown-unknown`. From `webui/`, run `npm run build:wasm` before `npm run type-check`, `npm run dev`, or `npm run build`. The `xtask build` command now generates the WASM package automatically before running the locked npm install and Vite build. CI installs the same `wasm-pack` version, builds through `xtask`, and then type-checks the generated WebUI. Generated files under `webui/src/wasm/pkg` are build outputs, not the source of truth.
 
 This bridge shares the generator; the Android module still does not consume identity fields through runtime hooks.
