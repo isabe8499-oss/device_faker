@@ -198,7 +198,7 @@
         <el-select
           :model-value="formData.identity?.mode ?? 'static'"
           style="width: 100%"
-          @update:model-value="setIdentityMode"
+          @update:model-value="handleIdentityModeUpdate"
         >
           <el-option :label="t('identity.static')" value="static" />
           <el-option :label="t('identity.seeded')" value="seeded" />
@@ -326,6 +326,12 @@ const previewScopeText = computed(() => {
 watch(previewPackage, () => {
   identityPreview.value = null
 })
+
+function handleIdentityModeUpdate(mode: unknown) {
+  if (mode === 'static' || mode === 'seeded') {
+    setIdentityMode(mode)
+  }
+}
 
 function setIdentityMode(mode: 'static' | 'seeded') {
   const current: IdentityConfig = { ...(formData.value.identity ?? {}) }
