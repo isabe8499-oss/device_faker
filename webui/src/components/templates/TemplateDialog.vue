@@ -15,7 +15,7 @@
         <el-input v-model="templateNameInput" :placeholder="t('templates.placeholders.name')" />
       </el-form-item>
 
-      <DeviceFakerFormFields>
+      <DeviceFakerFormFields :identity-preview-package="formData.packages[0] || ''">
         <template #packages>
           <el-form-item :label="t('templates.fields.packages')">
             <div class="package-manager">

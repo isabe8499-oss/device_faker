@@ -85,7 +85,7 @@
     <!-- 自定义配置界面 -->
     <div v-if="activeTab === 'custom'" class="custom-config">
       <el-form :model="formData" label-width="120px" label-position="top">
-        <DeviceFakerFormFields />
+        <DeviceFakerFormFields :identity-preview-package="props.app?.packageName || ''" />
       </el-form>
 
       <!-- 自定义配置操作按钮 -->
