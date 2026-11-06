@@ -239,12 +239,20 @@
             @update:model-value="setIdentitySeed"
           />
         </el-form-item>
+        <p v-if="!previewPackage" class="identity-scope">
+          {{ t('identity.target_required') }}
+        </p>
         <div class="identity-actions">
-          <el-button type="primary" :loading="identityBusy" @click="generateIdentitySeed">
+          <el-button
+            type="primary"
+            :loading="identityBusy"
+            :disabled="!previewPackage || identityBusy"
+            @click="generateIdentitySeed"
+          >
             {{ t('identity.generate_seed') }}
           </el-button>
           <el-button
-            :disabled="!formData.identity?.seed || identityBusy"
+            :disabled="!previewPackage || !formData.identity?.seed || identityBusy"
             @click="previewIdentity"
           >
             {{ t('identity.preview') }}
