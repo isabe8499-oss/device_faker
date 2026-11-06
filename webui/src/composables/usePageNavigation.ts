@@ -36,7 +36,8 @@ const AsyncPagePlaceholder = defineComponent({
 
 let appsPageLoader: Promise<AppsPageComponent> | null = null
 let templatePageLoader: Promise<TemplatePageComponent> | null = null
-let settingsPageLoader: Promise<SettingsPageComponent> | null = null\nlet identityLabPageLoader: Promise<IdentityLabPageComponent> | null = null
+let settingsPageLoader: Promise<SettingsPageComponent> | null = null
+let identityLabPageLoader: Promise<IdentityLabPageComponent> | null = null
 let idleWarmupTimer: number | null = null
 let idleWarmupId: number | null = null
 let appDataWarmupTimer: number | null = null
@@ -123,6 +124,12 @@ export function usePageNavigation(opts?: {
     loadingComponent: AsyncPagePlaceholder,
     delay: 0,
   })
+  const AsyncIdentityLabPage = defineAsyncComponent<IdentityLabPageComponent>({
+    loader: preloadIdentityLabPage,
+    suspensible: false,
+    loadingComponent: AsyncPagePlaceholder,
+    delay: 0,
+  })
 
   const pages = computed(() => [
     { id: 'home' as const, label: t('nav.home'), icon: House, component: StatusPage },
@@ -133,6 +140,12 @@ export function usePageNavigation(opts?: {
       component: AsyncTemplatePage,
     },
     { id: 'apps' as const, label: t('nav.apps'), icon: Smartphone, component: AsyncAppsPage },
+    {
+      id: 'identity' as const,
+      label: t('nav.identity'),
+      icon: Fingerprint,
+      component: AsyncIdentityLabPage,
+    },
     {
       id: 'settings' as const,
       label: t('nav.settings'),
@@ -171,6 +184,11 @@ export function usePageNavigation(opts?: {
     }
     if (pageId === 'templates') {
       void preloadTemplatePage().catch(() => {})
+      return
+    }
+    if (pageId === 'identity') {
+      void preloadIdentityLabPage().catch(() => {})
+      if (options.includeAppData) void appsStore.ensureUserAppsLoaded()
       return
     }
     if (pageId === 'settings') {
