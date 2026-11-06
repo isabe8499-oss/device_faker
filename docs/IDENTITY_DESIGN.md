@@ -171,3 +171,18 @@ Static `android_id` accepts 1–16 hexadecimal characters because AOSP's `Long.t
 The runtime now treats an unresolved package scope as `None`, requests module unload for that process, and does not query a configuration key such as `@0`. When a selected record contains an identity block, schema validation is performed for diagnostics only; invalid identity data is reported only when debug logging is enabled, and no identity hook consumes either valid or invalid values.
 
 **Important:** generated values remain synthetic data. They do not alter `Settings.Secure.ANDROID_ID`, the device serial, telephony state, GAID, DRM provisioning, MAC controller addresses, or hardware-backed attestation. There is no Android API interception enabled by this change.
+
+
+## 15. Shared Rust generator in the WebUI
+
+The browser integration uses the isolated `identity-wasm` crate, which depends on the same `identity-core` package as the developer CLI. It exposes a JSON preview function only; it does not install Android hooks or write configuration files.
+
+The WebUI obtains a 32-byte seed from the browser's cryptographic random source (`crypto.getRandomValues`) and passes that seed, the package name, and Android user ID to the Rust bridge. HMAC-SHA-256 derivation remains exclusively in `identity-core`; TypeScript does not reimplement the derivation algorithm.
+
+For a template preview, the first assigned package is used as the preview scope. The seed remains package-independent in the template configuration; a future runtime consumer must derive separately for each actual package/user scope. A direct app profile uses that app's package/user scope.
+
+The WebUI displays derived values as synthetic previews and stores only the seeded profile (seed + generation flags) in TOML. Static serial values remain manual input only. The UI never writes a previewed Android-ID-shaped value or UUID into a static identifier field automatically.
+
+Build locally from `webui/` with `npm run build:wasm` before `npm run type-check`, `npm run dev`, or `npm run build`. CI builds the WASM package before checking and bundling the WebUI. Generated files under `webui/src/wasm/pkg` are build outputs, not the source of truth.
+
+This bridge shares the generator; the Android module still does not consume identity fields through runtime hooks.
