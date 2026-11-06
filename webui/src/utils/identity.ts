@@ -13,7 +13,7 @@ export interface SyntheticIdentityPreview {
 type IdentityWasmModule = typeof import('../wasm/pkg/identity_wasm')
 
 let wasmModulePromise: Promise<IdentityWasmModule> | null = null
-let wasmInitialized = false
+let wasmInitPromise: Promise<void> | null = null
 
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
@@ -40,10 +40,13 @@ async function loadIdentityWasm(): Promise<IdentityWasmModule> {
   }
 
   const wasm = await wasmModulePromise
-  if (!wasmInitialized) {
-    await wasm.default()
-    wasmInitialized = true
+  if (!wasmInitPromise) {
+    wasmInitPromise = wasm.default().catch((error: unknown) => {
+      wasmInitPromise = null
+      throw error
+    })
   }
+  await wasmInitPromise
   return wasm
 }
 
@@ -64,7 +67,22 @@ export async function deriveSyntheticIdentityPreview(
     typeof preview !== 'object' ||
     preview === null ||
     !('synthetic' in preview) ||
-    preview.synthetic !== true
+    preview.synthetic !== true ||
+    !('package' in preview) ||
+    typeof preview.package !== 'string' ||
+    !('android_user_id' in preview) ||
+    typeof preview.android_user_id !== 'number' ||
+    !('seed_hex' in preview) ||
+    typeof preview.seed_hex !== 'string' ||
+    !('identifiers' in preview) ||
+    typeof preview.identifiers !== 'object' ||
+    preview.identifiers === null ||
+    !('android_id' in preview.identifiers) ||
+    typeof preview.identifiers.android_id !== 'string' ||
+    !('app_instance_id' in preview.identifiers) ||
+    typeof preview.identifiers.app_instance_id !== 'string' ||
+    !('notice' in preview) ||
+    typeof preview.notice !== 'string'
   ) {
     throw new Error('The Rust identity generator returned an unexpected response.')
   }

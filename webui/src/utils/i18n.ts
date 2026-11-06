@@ -20,7 +20,7 @@ export const messages = {
     },
     identity: {
       title: '合成身份配置',
-      notice: '以下是按应用与 Android 用户范围生成的测试数据，不会修改 Android 系统 API、硬件标识或硬件证明。',
+      notice: '以下是按应用与 Android 用户范围生成的测试数据，不会修改 Android 系统 API、硬件标识或硬件证明。请妥善保管 seed。',
       mode: '生成模式',
       static: '静态值',
       seeded: '种子派生',
@@ -447,7 +447,7 @@ export const messages = {
     },
     identity: {
       title: 'Synthetic Identity',
-      notice: 'These are app- and Android-user-scoped test values. They do not modify Android APIs, hardware identifiers, or hardware-backed attestation.',
+      notice: 'These are app- and Android-user-scoped test values. They do not modify Android APIs, hardware identifiers, or hardware-backed attestation. Keep the seed private.',
       mode: 'Generation mode',
       static: 'Static values',
       seeded: 'Seed-derived',
@@ -877,7 +877,7 @@ export const messages = {
     },
     identity: {
       title: 'Sentetik Kimlik',
-      notice: 'Bunlar uygulama ve Android kullanıcı kapsamlı test değerleridir. Android API’lerini, donanım kimliklerini veya donanım destekli doğrulamayı değiştirmezler.',
+      notice: 'Bunlar uygulama ve Android kullanıcı kapsamlı test değerleridir. Android API’lerini, donanım kimliklerini veya donanım destekli doğrulamayı değiştirmezler. Tohumu gizli tutun.',
       mode: 'Üretim modu',
       static: 'Sabit değerler',
       seeded: 'Tohumdan türetilmiş',

@@ -368,11 +368,12 @@ async function derivePreview(seedHex: string) {
     throw new Error(t('identity.target_required'))
   }
   const scope = parsePackageUser(scopeKey)
-  identityPreview.value = await deriveSyntheticIdentityPreview(
-    scope.base,
-    scope.userId,
-    seedHex,
-  )
+  const result = await deriveSyntheticIdentityPreview(scope.base, scope.userId, seedHex)
+  // Discard a late result if the user changed the package or seed while WASM loaded.
+  if (previewPackage.value.trim() !== scopeKey || formData.value.identity?.seed !== seedHex) {
+    return
+  }
+  identityPreview.value = result
   identityPreviewError.value = ''
 }
 
