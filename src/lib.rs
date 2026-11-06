@@ -228,7 +228,7 @@ impl MyModule {
         if let Some(identity) = merged.identity.as_ref() {
             match identity.validate() {
                 Ok(()) if config.debug => info!(
-                    "Identity config valid for {package_name}; only the legacy app-local Build.SERIAL field can be overridden; Build.getSerial and generated IDs are not hooked"
+                    "Identity config valid for {package_name}; only a configured serial can override legacy app-local Build.SERIAL; Build.getSerial and generated IDs remain unchanged"
                 ),
                 Err(reason) if config.debug => warn!(
                     "Identity config rejected for {package_name}; identity settings ignored: {reason}"
