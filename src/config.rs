@@ -376,6 +376,14 @@ where
     Ok(value.as_bool().unwrap_or(false))
 }
 
+fn deserialize_identity_optional_bool<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = toml::Value::deserialize(deserializer)?;
+    Ok(value.as_bool())
+}
+
 fn deserialize_identity_generate<'de, D>(
     deserializer: D,
 ) -> Result<IdentityGenerate, D::Error>
@@ -425,6 +433,9 @@ impl IdentityGenerate {
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 #[serde(default)]
 pub struct IdentityConfig {
+    /// When absent, preserve legacy behavior and treat the profile as enabled.
+    #[serde(default, deserialize_with = "deserialize_identity_optional_bool")]
+    pub enabled: Option<bool>,
     pub mode: IdentityMode,
     #[serde(deserialize_with = "deserialize_identity_string")]
     pub seed: Option<String>,
@@ -475,17 +486,26 @@ fn valid_seed_hex(value: &str) -> bool {
 }
 
 impl IdentityConfig {
+    /// Old configurations omit this key; they remain enabled for compatibility.
+    pub fn is_enabled(&self) -> bool {
+        self.enabled.unwrap_or(true)
+    }
+
     /// Returns true when at least one literal value or generated field is requested.
     pub fn is_configured(&self) -> bool {
-        identity_value_is_set(self.android_id.as_deref())
+        self.is_enabled()
+            && (identity_value_is_set(self.android_id.as_deref())
             || identity_value_is_set(self.serial.as_deref())
             || identity_value_is_set(self.app_instance_id.as_deref())
-            || self.generate.any()
+            || self.generate.any())
     }
 
     /// Validates syntax and mode consistency only. This does not install hooks
     /// or claim that any Android platform API returns these values.
     pub fn validate(&self) -> std::result::Result<(), &'static str> {
+        if !self.is_enabled() {
+            return Ok(());
+        }
         if self.mode == IdentityMode::Unsupported {
             return Err("identity.mode must be static or seeded");
         }
@@ -1172,6 +1192,36 @@ mod identity_config_tests {
         let merged = config.get_merged_config("com.example.legacy")
             .expect("legacy template should resolve");
         assert!(merged.identity.is_none());
+    }
+
+    #[test]
+    fn identity_profiles_default_to_enabled_when_key_is_omitted() {
+        let config = Config::from_toml(r#"
+            [[apps]]
+            package = "com.example.game"
+
+            [apps.identity]
+            mode = "static"
+            serial = "legacy-serial"
+        "#).expect("legacy identity config should parse");
+        let identity = config.get_merged_config("com.example.game")
+            .and_then(|merged| merged.identity)
+            .expect("identity profile should parse");
+        assert!(identity.is_enabled());
+        assert_eq!(identity.validate(), Ok(()));
+    }
+
+    #[test]
+    fn disabled_identity_profile_is_inert_even_with_stale_values() {
+        let identity = IdentityConfig {
+            enabled: Some(false),
+            mode: IdentityMode::Unsupported,
+            serial: Some("bad\\nserial".to_owned()),
+            ..IdentityConfig::default()
+        };
+        assert!(!identity.is_enabled());
+        assert!(!identity.is_configured());
+        assert_eq!(identity.validate(), Ok(()));
     }
 
     #[test]
