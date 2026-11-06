@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, readonly } from 'vue'
 
-export type PageId = 'home' | 'templates' | 'apps' | 'settings'
+export type PageId = 'home' | 'templates' | 'apps' | 'identity' | 'settings'
 
 interface ModalEntry {
   id: symbol
