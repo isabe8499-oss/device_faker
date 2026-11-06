@@ -253,14 +253,20 @@ impl MyModule {
         };
 
         if let Some(identity) = merged.identity.as_ref() {
-            match identity.validate() {
-                Ok(()) if config.debug => info!(
-                    "Identity config valid for {package_name}; only a configured serial can override legacy app-local Build.SERIAL; Build.getSerial and generated IDs remain unchanged"
-                ),
-                Err(reason) if config.debug => warn!(
-                    "Identity config rejected for {package_name}; identity settings ignored: {reason}"
-                ),
-                _ => {}
+            if !identity.is_enabled() {
+                if config.debug {
+                    info!("Identity profile disabled for {package_name}; no identity field overrides applied");
+                }
+            } else {
+                match identity.validate() {
+                    Ok(()) if config.debug => info!(
+                        "Identity config valid for {package_name}; only a configured serial can override legacy app-local Build.SERIAL; Build.getSerial and generated IDs remain unchanged"
+                    ),
+                    Err(reason) if config.debug => warn!(
+                        "Identity config rejected for {package_name}; identity settings ignored: {reason}"
+                    ),
+                    _ => {}
+                }
             }
         }
 
