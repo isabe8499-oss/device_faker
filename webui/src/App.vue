@@ -345,11 +345,13 @@ onUnmounted(() => {
 }
 
 .nav-item {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.2rem;
   background: transparent;
   border: none;
   color: var(--text-secondary);
