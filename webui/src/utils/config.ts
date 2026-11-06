@@ -56,6 +56,10 @@ function normalizeIdentityConfig(value: unknown): IdentityConfig | undefined {
   // identity settings introduced by a newer Device Faker build.
   const identity: Record<string, unknown> = { ...value }
 
+  if (typeof value.enabled !== 'boolean') {
+    delete identity.enabled
+  }
+
   if (value.mode !== 'static' && value.mode !== 'seeded') {
     delete identity.mode
   }
