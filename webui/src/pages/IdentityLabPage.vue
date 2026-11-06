@@ -41,6 +41,7 @@
           <div>
             <h3>Identidade do aplicativo</h3>
             <p>Escolha valores manuais ou gere identificadores sintéticos determinísticos.</p>
+            <p class="scope-line">Escopo: {{ profileScopeLabel }}</p>
           </div>
           <span class="state-pill" :class="profileEnabled ? 'state-pill--green' : ''">
             {{ profileEnabled ? 'PERFIL ATIVO' : 'PERFIL DESATIVADO' }}
@@ -49,7 +50,7 @@
 
         <div class="profile-enable-row">
           <div>
-            <strong>Ativar perfil geral</strong>
+            <strong>Ativar identidade sintética</strong>
             <small>Desativado: o Zygisk não aplica o Serial legado deste perfil. Os valores ficam salvos.</small>
           </div>
           <el-switch v-model="profileEnabled" />
@@ -222,6 +223,12 @@ const saving = ref(false)
 const error = ref('')
 let previewRequestId = 0
 
+const profileScopeLabel = computed(() => {
+  if (!selectedPackage.value) return ''
+  const scope = parsePackageUser(selectedPackage.value)
+  return `${scope.base} · usuário Android ${scope.userId}`
+})
+
 const runtimeNotice = 'Com o perfil ativo, o runtime atual consome somente Legacy Build.SERIAL. Android ID e App Instance UUID são armazenados/visualizados como dados sintéticos, mas ainda não são interceptados nas APIs Android. Desativar o perfil impede também o override do Serial legado.'
 const protectedIdentifiers = [
   { name: 'GSF ID', description: 'Identificador atribuído pelo Google Services Framework; nenhuma interceptação é aplicada.' },
@@ -333,9 +340,11 @@ async function generateStaticValue(kind: 'android_id' | 'app_instance_id') {
   busy.value = true
   error.value = ''
   try {
-    const scope = parsePackageUser(selectedPackage.value)
+    const packageName = selectedPackage.value
+    const scope = parsePackageUser(packageName)
     const testSeed = createIdentitySeedHex()
     const values = await deriveSyntheticIdentityPreview(scope.base, scope.userId, testSeed)
+    if (selectedPackage.value !== packageName) return
     if (kind === 'android_id') androidId.value = values.identifiers.android_id
     else appInstanceId.value = values.identifiers.app_instance_id
     ElMessage.success('Valor sintético de teste gerado')
@@ -437,7 +446,7 @@ async function saveProfile() {
 .package-select{width:100%}
 .profile-enable-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.9rem 0 1.1rem;margin-bottom:.4rem;border-bottom:1px solid var(--border)}
 .profile-enable-row strong{display:block;font-size:.9rem}
-.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}
+.profile-enable-row small{display:block;color:var(--text-secondary);font-size:.73rem;line-height:1.45;margin-top:.2rem}\n.scope-line{font-size:.74rem!important;margin-top:.3rem!important;color:var(--text-secondary)}
 .field-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
 .hint,.notice,.seed-box p{font-size:.76rem;line-height:1.5;color:var(--text-secondary)}
 .field-card{padding:.9rem;border:1px solid var(--border);border-radius:.8rem;margin:.7rem 0;background:var(--background)}
