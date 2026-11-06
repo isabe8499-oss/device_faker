@@ -8,6 +8,23 @@ export interface CustomProps {
   [key: string]: string
 }
 
+/** Optional identity profile data. Unknown keys are retained during WebUI edits. */
+export interface IdentityGenerate {
+  android_id?: boolean
+  app_instance_id?: boolean
+  [key: string]: unknown
+}
+
+export interface IdentityConfig {
+  mode?: 'static' | 'seeded'
+  seed?: string
+  android_id?: string
+  serial?: string
+  app_instance_id?: string
+  generate?: IdentityGenerate
+  [key: string]: unknown
+}
+
 /**
  * 数值型设置（目前只有 sdk_int）也支持 TOML 的字符串标记 `__DELETE__`
  * （删除对应属性族，见 docs/CONFIG.md「特殊标记值」）。
@@ -37,6 +54,7 @@ export interface DeviceInfo {
   sdk_int?: NumericSetting
   dpi?: number
   custom_props?: CustomProps
+  identity?: IdentityConfig
   force_denylist_unmount?: boolean
   companion_resetprop?: boolean
 }

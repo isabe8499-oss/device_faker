@@ -3,6 +3,7 @@ import type {
   Config,
   CustomProps,
   DeviceInfo,
+  IdentityConfig,
   NumericSetting,
   Template,
   TemplateMeta,
@@ -44,6 +45,54 @@ function asOptionalNumericSetting(value: unknown): NumericSetting | undefined {
   }
 
   return asOptionalInteger(value)
+}
+
+function normalizeIdentityConfig(value: unknown): IdentityConfig | undefined {
+  if (!isRecord(value)) {
+    return undefined
+  }
+
+  // Keep unknown future keys so editing unrelated fields does not erase
+  // identity settings introduced by a newer Device Faker build.
+  const identity: Record<string, unknown> = { ...value }
+
+  if (value.mode !== 'static' && value.mode !== 'seeded') {
+    delete identity.mode
+  }
+
+  const stringFields = [
+    'seed',
+    'android_id',
+    'serial',
+    'app_instance_id',
+  ] as const
+
+  for (const field of stringFields) {
+    const entry = asOptionalString(value[field])
+    if (entry === undefined) {
+      delete identity[field]
+    } else {
+      identity[field] = entry
+    }
+  }
+
+  if (isRecord(value.generate)) {
+    const generate: Record<string, unknown> = { ...value.generate }
+    for (const field of ['android_id', 'app_instance_id'] as const) {
+      if (typeof value.generate[field] !== 'boolean') {
+        delete generate[field]
+      }
+    }
+    if (Object.keys(generate).length > 0) {
+      identity.generate = generate
+    } else {
+      delete identity.generate
+    }
+  } else {
+    delete identity.generate
+  }
+
+  return Object.keys(identity).length > 0 ? (identity as IdentityConfig) : undefined
 }
 
 function normalizePackages(value: unknown): string[] | undefined {
@@ -137,6 +186,9 @@ function normalizeDeviceInfoFields(source: UnknownRecord): Partial<DeviceInfo> {
 
   const customProps = normalizeCustomProps(source.custom_props)
   if (customProps !== undefined) normalized.custom_props = customProps
+
+  const identity = normalizeIdentityConfig(source.identity)
+  if (identity !== undefined) normalized.identity = identity
 
   const forceDenylistUnmount = asOptionalBoolean(source.force_denylist_unmount)
   if (forceDenylistUnmount !== undefined) {

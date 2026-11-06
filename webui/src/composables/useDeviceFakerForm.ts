@@ -1,5 +1,5 @@
 import { inject, provide, ref, type InjectionKey, type Ref } from 'vue'
-import type { CustomProps, Template, AppConfig } from '../types'
+import type { CustomProps, IdentityConfig, Template, AppConfig } from '../types'
 
 export const DEVICE_FAKER_FORM_KEY: InjectionKey<Ref<DeviceFakerFormData>> =
   Symbol('deviceFakerForm')
@@ -31,6 +31,7 @@ export interface DeviceFakerFormData {
   characteristics: string
   force_denylist_unmount: boolean | undefined
   companion_resetprop: boolean | undefined
+  identity: IdentityConfig | undefined
   packages: string[]
   customProps: CustomPropEntry[]
 }
@@ -78,6 +79,7 @@ function createEmptyFormData(): DeviceFakerFormData {
     characteristics: '',
     force_denylist_unmount: undefined,
     companion_resetprop: undefined,
+    identity: undefined,
     packages: [],
     customProps: [],
   }
@@ -187,6 +189,12 @@ export function formDataToTemplate(formData: DeviceFakerFormData, base?: Templat
 
   template.custom_props = entriesToCustomProps(formData.customProps)
 
+  if (formData.identity !== undefined) {
+    template.identity = formData.identity
+  } else {
+    delete template.identity
+  }
+
   return template
 }
 
@@ -213,6 +221,7 @@ export function templateToFormData(template: Template): DeviceFakerFormData {
     characteristics: template.characteristics || '',
     force_denylist_unmount: template.force_denylist_unmount,
     companion_resetprop: template.companion_resetprop,
+    identity: template.identity,
     packages: template.packages || [],
     customProps: customPropsToEntries(template.custom_props),
   }
@@ -241,6 +250,7 @@ export function appConfigToFormData(appConfig: AppConfig): DeviceFakerFormData {
     characteristics: appConfig.characteristics || '',
     force_denylist_unmount: appConfig.force_denylist_unmount,
     companion_resetprop: appConfig.companion_resetprop,
+    identity: appConfig.identity,
     packages: [],
     customProps: customPropsToEntries(appConfig.custom_props),
   }
@@ -276,6 +286,7 @@ export function formDataToAppConfig(formData: DeviceFakerFormData, packageName: 
     characteristics: formData.characteristics,
     force_denylist_unmount: formData.force_denylist_unmount,
     companion_resetprop: formData.companion_resetprop,
+    identity: formData.identity,
     custom_props: entriesToCustomProps(formData.customProps),
   }
 }
