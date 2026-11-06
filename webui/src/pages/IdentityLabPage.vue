@@ -220,6 +220,7 @@ const preview = ref<SyntheticIdentityPreview | null>(null)
 const busy = ref(false)
 const saving = ref(false)
 const error = ref('')
+let previewRequestId = 0
 
 const runtimeNotice = 'Com o perfil ativo, o runtime atual consome somente Legacy Build.SERIAL. Android ID e App Instance UUID são armazenados/visualizados como dados sintéticos, mas ainda não são interceptados nas APIs Android. Desativar o perfil impede também o override do Serial legado.'
 const protectedIdentifiers = [
@@ -243,6 +244,7 @@ const protectedIdentifiers = [
 watch(selectedPackage, () => loadSelectedProfile())
 
 onMounted(async () => {
+  await configStore.bootstrap()
   await appsStore.ensureUserAppsLoaded()
   if (!selectedPackage.value && appsStore.installedApps.length) {
     selectedPackage.value = appsStore.installedApps[0].packageName
@@ -250,9 +252,21 @@ onMounted(async () => {
 })
 
 function loadSelectedProfile() {
+  previewRequestId += 1
   error.value = ''
   preview.value = null
-  if (!selectedPackage.value) return
+  if (!selectedPackage.value) {
+    profileEnabled.value = true
+    mode.value = 'static'
+    seed.value = ''
+    androidId.value = ''
+    appInstanceId.value = ''
+    serial.value = ''
+    serialEnabled.value = false
+    generateAndroidId.value = false
+    generateAppInstanceId.value = false
+    return
+  }
 
   const resolved = configStore.getPackageConfig(selectedPackage.value)
   const identity = resolved?.identity
@@ -272,12 +286,24 @@ function loadSelectedProfile() {
 }
 
 async function refreshPreview() {
-  if (!selectedPackage.value || !seed.value) return
+  const packageName = selectedPackage.value
+  const seedHex = seed.value
+  if (!packageName || !seedHex) {
+    preview.value = null
+    return
+  }
+
+  const requestId = ++previewRequestId
   try {
-    const scope = parsePackageUser(selectedPackage.value)
-    preview.value = await deriveSyntheticIdentityPreview(scope.base, scope.userId, seed.value)
+    const scope = parsePackageUser(packageName)
+    const result = await deriveSyntheticIdentityPreview(scope.base, scope.userId, seedHex)
+    if (requestId !== previewRequestId || packageName !== selectedPackage.value || seedHex !== seed.value) {
+      return
+    }
+    preview.value = result
     error.value = ''
   } catch (cause) {
+    if (requestId !== previewRequestId || packageName !== selectedPackage.value) return
     preview.value = null
     error.value = cause instanceof Error ? cause.message : String(cause)
   }
