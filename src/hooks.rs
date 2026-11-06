@@ -23,7 +23,7 @@ fn field_str(field: &Option<String>) -> Option<&str> {
 /// Whitespace-only strings are treated as unset, matching IdentityConfig's
 /// configured-field semantics. The existing special markers are preserved:
 /// __EMPTY__ requests an empty field and __DELETE__ leaves the platform value.
-fn legacy_build_serial(identity: Option<&IdentityConfig>) -> Option<&str> {
+fn legacy_build_serial<'a>(identity: Option<&'a IdentityConfig>) -> Option<&'a str> {
     let identity = identity?;
     if identity.validate().is_err() {
         return None;
