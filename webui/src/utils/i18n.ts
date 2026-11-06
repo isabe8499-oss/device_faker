@@ -49,6 +49,7 @@ export const messages = {
       home: '主页',
       templates: '模板',
       apps: '应用',
+      identity: '身份',
       settings: '设置',
     },
     status: {
@@ -390,6 +391,7 @@ export const messages = {
           zh: '简体中文',
           en: 'English',
           tr: 'Türkçe',
+          ptBR: 'Português (Brasil)',
         },
       },
       module: {
@@ -478,6 +480,7 @@ export const messages = {
       home: 'Home',
       templates: 'Templates',
       apps: 'Apps',
+      identity: 'Identity',
       settings: 'Settings',
     },
     status: {
@@ -910,6 +913,7 @@ export const messages = {
       home: 'Ev',
       templates: 'Şablonlar',
       apps: 'Uygulamalar',
+      identity: 'Kimlik',
       settings: 'Ayarlar',
     },
     status: {
@@ -1302,6 +1306,28 @@ export const messages = {
       },
     },
   },
+  'pt-BR': {
+    nav: {
+      home: 'Início',
+      templates: 'Modelos',
+      apps: 'Aplicativos',
+      identity: 'Identidade',
+      settings: 'Configurações',
+    },
+    settings: {
+      display: {
+        language: {
+          label: 'Idioma',
+          desc: 'Escolha o idioma da interface',
+          system: 'Seguir sistema',
+          zh: 'Chinês simplificado',
+          en: 'Inglês',
+          tr: 'Turco',
+          ptBR: 'Português (Brasil)',
+        },
+      },
+    },
+  },
 }
 
 export const projectTranslators = {
@@ -1317,7 +1343,7 @@ export const projectTranslators = {
   },
 }
 
-export type Locale = 'zh' | 'en' | 'tr'
+export type Locale = 'zh' | 'en' | 'tr' | 'pt-BR'
 
 // Simple object path access
 function getNestedValue(obj: unknown, path: string): string {
@@ -1346,6 +1372,7 @@ export function useI18n() {
 
       if (sysLang.startsWith('zh')) return 'zh'
       if (sysLang.startsWith('tr')) return 'tr'
+      if (sysLang.toLowerCase().startsWith('pt')) return 'pt-BR'
 
       return 'en'
     }
