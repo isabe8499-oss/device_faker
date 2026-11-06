@@ -111,6 +111,7 @@ import { toast } from 'kernelsu-alt'
 import type { InstalledApp, AppConfig } from '../../types'
 import { provideDeviceFakerForm } from '../../composables/useDeviceFakerForm'
 import DeviceFakerFormFields from '../shared/DeviceFakerFormFields.vue'
+import { isIdentityConfigValid } from '../../utils/identity'
 import {
   configKeyScope,
   configWriteKey,
@@ -417,6 +418,17 @@ async function saveAppConfig() {
     !hasTemplateConfig.value && templateInherited.value && !hasOwnTemplateEntry(packageName)
   const keepsInheritedCustom =
     !hasCustomConfig.value && customInherited.value && !hasOwnAppEntry(packageName)
+
+  if (hasCustomConfig.value) {
+    const originalIdentity = originalCustomConfig.value?.identity ?? null
+    const currentIdentity = formData.value.identity ?? null
+    const identityChanged =
+      JSON.stringify(currentIdentity) !== JSON.stringify(originalIdentity)
+    if (identityChanged && !isIdentityConfigValid(formData.value.identity)) {
+      toast(t('identity.invalid_config'))
+      return
+    }
+  }
 
   if (hasTemplateConfig.value) {
     if (!selectedTemplate.value) {
