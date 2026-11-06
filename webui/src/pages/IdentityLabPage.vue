@@ -170,7 +170,7 @@
             <h3>{{ t('identityLab.protectedTitle') }}</h3>
             <p>{{ t('identityLab.protectedDesc') }}</p>
           </div>
-          <span class="state-pill">{{ t('common.disabled') }}</span>
+          <span class="state-pill">{{ t('identityLab.notChanged') }}</span>
         </div>
         <div v-for="item in protectedIdentifiers" :key="item.nameKey" class="protected-row">
           <div>
