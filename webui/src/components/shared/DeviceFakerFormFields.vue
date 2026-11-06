@@ -376,6 +376,12 @@ async function derivePreview(seedHex: string) {
     throw new Error(t('identity.target_required'))
   }
   const scope = parsePackageUser(scopeKey)
+  if (!/^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+$/.test(scope.base)) {
+    throw new Error(t('identity.invalid_scope'))
+  }
+  if (!Number.isSafeInteger(scope.userId) || scope.userId < 0 || scope.userId > 0xffffffff) {
+    throw new Error(t('identity.invalid_scope'))
+  }
   const result = await deriveSyntheticIdentityPreview(scope.base, scope.userId, seedHex)
   // Discard a late result if the user changed the package or seed while WASM loaded.
   if (previewPackage.value.trim() !== scopeKey || formData.value.identity?.seed !== seedHex) {
