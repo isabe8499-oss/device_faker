@@ -8,6 +8,33 @@ mod cow_props;
 mod fg_observer;
 #[cfg(target_os = "android")]
 mod file_logger;
+
+// Host-side unit tests exercise portable configuration and identity logic. These
+// no-op adapters satisfy the Android runtime's observer/logger interfaces without
+// compiling Binder observers or enabling file logging on the Linux test runner.
+// Android builds always use the real modules above.
+#[cfg(not(target_os = "android"))]
+mod fg_observer {
+    use std::sync::{Arc, atomic::AtomicBool};
+
+    pub type FgSink = Arc<dyn Fn(&[String]) + Send + Sync>;
+    pub static FG_READY: AtomicBool = AtomicBool::new(false);
+
+    pub fn spawn_fg_source(_sink: FgSink) {}
+
+    pub fn current_top() -> Vec<String> {
+        Vec::new()
+    }
+}
+
+#[cfg(not(target_os = "android"))]
+mod file_logger {
+    pub fn set_level(_level: log::LevelFilter) {}
+
+    pub fn drain_lines() -> Vec<String> {
+        Vec::new()
+    }
+}
 mod hooks;
 mod prop_backend;
 
