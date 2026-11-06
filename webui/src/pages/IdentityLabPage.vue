@@ -191,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Fingerprint, WandSparkles } from '@lucide/vue'
 import { ElMessage } from 'element-plus'
 import { useAppsStore } from '../stores/apps'
