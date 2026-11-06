@@ -174,6 +174,7 @@ export const useOnlineTemplatesStore = defineStore('online-templates', () => {
         detail?.template.marketname,
         detail?.template.device,
         detail?.template.product,
+        detail?.template.fingerprint,
         detail?.template.manufacturer,
         detail?.meta?.author,
         detail?.meta?.description,
@@ -188,10 +189,70 @@ export const useOnlineTemplatesStore = defineStore('online-templates', () => {
     return map
   })
 
+  /**
+   * Only surface templates that are complete enough to be useful as device profiles.
+   * Fingerprint is mandatory and must follow Android's six-segment build fingerprint
+   * structure. Core identity fields are mandatory; at least three build metadata fields
+   * must also be present. Optional hardware details improve quality but are not required.
+   */
+  function hasValidBuildFingerprint(value: unknown): value is string {
+    if (typeof value !== 'string') return false
+    const fingerprint = value.trim()
+    if (!fingerprint || /\\s/.test(fingerprint)) return false
+    const segments = fingerprint.split('/')
+    return (
+      segments.length === 6 &&
+      segments.every((segment) => segment.length > 0) &&
+      segments[2].includes(':') &&
+      segments[4].includes(':')
+    )
+  }
+
+  function isCompleteTemplate(template: OnlineTemplateDetail['template']): boolean {
+    if (!hasValidBuildFingerprint(template.fingerprint)) return false
+
+    const coreFields = [
+      template.manufacturer,
+      template.brand,
+      template.model,
+      template.device,
+      template.product,
+    ]
+    if (coreFields.some((value) => typeof value !== 'string' || !value.trim())) {
+      return false
+    }
+
+    const buildFields = [
+      template.build_id,
+      template.incremental,
+      template.security_patch,
+      template.android_version,
+      template.sdk_int,
+    ]
+    const populatedBuildFields = buildFields.filter((value) => {
+      if (typeof value === 'number') return Number.isFinite(value) && value > 0
+      return typeof value === 'string' && value.trim().length > 0
+    }).length
+
+    return populatedBuildFields >= 3
+  }
+
+  const isQualityScanRunning = computed(
+    () =>
+      indexStatus.value === 'ready' &&
+      (detailsStatus.value === 'loading' || detailsStatus.value === 'partial')
+  )
+
   const filteredIndexItems = computed(() => {
     const needle = keyword.value.trim().toLowerCase()
 
     return indexItems.value.filter((item) => {
+      const detailState = detailStateById.value[item.id]
+      // Do not expose unverified/loading entries as search results.
+      if (!isReadyState(detailState) || !isCompleteTemplate(detailState.detail.template)) {
+        return false
+      }
+
       if (selectedCategory.value !== 'all' && item.category !== selectedCategory.value) {
         return false
       }
@@ -861,6 +922,7 @@ export const useOnlineTemplatesStore = defineStore('online-templates', () => {
     preferredSource,
     isFallbackSource,
     filteredRecords,
+    isQualityScanRunning,
     availableBrands,
     hasAnyData,
     failedDetailCount,
