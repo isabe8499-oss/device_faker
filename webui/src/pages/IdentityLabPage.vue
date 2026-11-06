@@ -56,9 +56,17 @@
           <template v-if="mode === 'static'">
             <el-form-item label="Android ID sintético (hexadecimal)">
               <el-input v-model="androidId" maxlength="16" placeholder="Ex.: 7a4d9c2b3e8f11a4" />
+              <div class="field-actions">
+                <el-button size="small" @click="generateStaticValue('android_id')">Gerar valor de teste</el-button>
+                <el-button v-if="androidId" size="small" text @click="copyValue(androidId)">Copiar</el-button>
+              </div>
             </el-form-item>
             <el-form-item label="App Instance UUID sintético">
               <el-input v-model="appInstanceId" placeholder="UUID versão 8" />
+              <div class="field-actions">
+                <el-button size="small" @click="generateStaticValue('app_instance_id')">Gerar valor de teste</el-button>
+                <el-button v-if="appInstanceId" size="small" text @click="copyValue(appInstanceId)">Copiar</el-button>
+              </div>
             </el-form-item>
           </template>
 
@@ -133,6 +141,10 @@
               maxlength="128"
               placeholder="Digite um valor de teste (ASCII)"
             />
+            <div class="field-actions">
+              <el-button size="small" :disabled="!serialEnabled" @click="generateTestSerial">Gerar Serial de teste</el-button>
+              <el-button v-if="serial" size="small" text @click="copyValue(serial)">Copiar</el-button>
+            </div>
             <span class="runtime-pill">SUPORTE LIMITADO IMPLEMENTADO</span>
           </div>
         </el-form>
@@ -278,6 +290,34 @@ async function generatePreview() {
   }
 }
 
+async function generateStaticValue(kind: 'android_id' | 'app_instance_id') {
+  if (!selectedPackage.value || busy.value) return
+  busy.value = true
+  error.value = ''
+  try {
+    const scope = parsePackageUser(selectedPackage.value)
+    const testSeed = createIdentitySeedHex()
+    const values = await deriveSyntheticIdentityPreview(scope.base, scope.userId, testSeed)
+    if (kind === 'android_id') androidId.value = values.identifiers.android_id
+    else appInstanceId.value = values.identifiers.app_instance_id
+    ElMessage.success('Valor sintético de teste gerado')
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : String(cause)
+  } finally {
+    busy.value = false
+  }
+}
+
+function generateTestSerial() {
+  try {
+    serial.value = `DF-TEST-${createIdentitySeedHex().slice(0, 12).toUpperCase()}`
+    serialEnabled.value = true
+    ElMessage.success('Serial de teste gerado')
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : String(cause)
+  }
+}
+
 async function copyValue(value: string) {
   try {
     await navigator.clipboard.writeText(value)
@@ -354,7 +394,7 @@ async function saveProfile() {
 .panel-heading h3{font-size:1rem;margin:0 0 .25rem}
 .state-pill,.runtime-pill,.unavailable-pill{font-size:.62rem;font-weight:700;letter-spacing:.04em;border-radius:99px;padding:.35rem .55rem;background:var(--background);color:var(--text-secondary);white-space:nowrap}
 .state-pill--green{color:#21845b}
-.package-select{width:100%}
+.package-select{width:100%}\n.field-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
 .hint,.notice,.seed-box p{font-size:.76rem;line-height:1.5;color:var(--text-secondary)}
 .field-card{padding:.9rem;border:1px solid var(--border);border-radius:.8rem;margin:.7rem 0;background:var(--background)}
 .field-top{align-items:center;margin-bottom:.75rem}
