@@ -100,11 +100,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y upx
 
-      - name: Upload artifact
+      - name: Upload release ZIP artifact
         uses: actions/upload-artifact@v7
         with:
-          name: device_faker
-          path: module/
+          name: device_faker-release
+          path: output/device_faker-(release).zip
+          if-no-files-found: error
       
       - name: Upload
         if: github.event_name == 'push'
