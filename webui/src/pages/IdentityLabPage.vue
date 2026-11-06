@@ -222,8 +222,8 @@ function loadSelectedProfile() {
   preview.value = null
   if (!selectedPackage.value) return
 
-  const existing = configStore.getApps().find((app) => app.package === selectedPackage.value)
-  const identity = existing?.identity
+  const resolved = configStore.getPackageConfig(selectedPackage.value)
+  const identity = resolved?.identity
   mode.value = identity?.mode === 'seeded' ? 'seeded' : 'static'
   seed.value = identity?.seed ?? ''
   androidId.value = identity?.android_id ?? ''
