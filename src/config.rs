@@ -495,9 +495,9 @@ impl IdentityConfig {
     pub fn is_configured(&self) -> bool {
         self.is_enabled()
             && (identity_value_is_set(self.android_id.as_deref())
-            || identity_value_is_set(self.serial.as_deref())
-            || identity_value_is_set(self.app_instance_id.as_deref())
-            || self.generate.any())
+                || identity_value_is_set(self.serial.as_deref())
+                || identity_value_is_set(self.app_instance_id.as_deref())
+                || self.generate.any())
     }
 
     /// Validates syntax and mode consistency only. This does not install hooks
@@ -1221,6 +1221,25 @@ mod identity_config_tests {
         };
         assert!(!identity.is_enabled());
         assert!(!identity.is_configured());
+        assert_eq!(identity.validate(), Ok(()));
+    }
+
+    #[test]
+    fn identity_profile_enable_flag_round_trips_through_toml() {
+        let config = Config::from_toml(r#"
+            [[apps]]
+            package = "com.example.game"
+
+            [apps.identity]
+            enabled = false
+            mode = "static"
+            serial = "SERIAL-TEST-001"
+        "#).expect("enabled flag should parse");
+        let identity = config.get_merged_config("com.example.game")
+            .and_then(|merged| merged.identity)
+            .expect("identity profile should parse");
+        assert_eq!(identity.enabled, Some(false));
+        assert!(!identity.is_enabled());
         assert_eq!(identity.validate(), Ok(()));
     }
 
