@@ -279,8 +279,7 @@ serial = "SERIAL-DE-TESTE"
 package = "com.example.other"
 
 [apps.identity]
-mode = "seeded"
-seed = "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+mode = "static"
 app_instance_id = "6a8999ce-3a4e-8c23-aa6b-c80445b6bd7c"
 ```
 
