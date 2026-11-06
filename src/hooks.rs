@@ -26,6 +26,17 @@ pub fn hook_build_fields(
     env.with_env(|jenv| -> Result<(), jni::errors::Error> {
         let build_class = jenv.find_class(jni_str!("android/os/Build"))?;
 
+        // Build.SERIAL is the deprecated app-process static field. It is distinct
+        // from Build.getSerial(), which calls DeviceIdentifiersPolicyService over
+        // Binder and is intentionally not modified by this process-local hook.
+        if let Some(identity) = merged_config.identity.as_ref()
+            && identity.validate().is_ok()
+            && let Some(serial) = field_str(&identity.serial)
+        {
+            set_build_field(jenv, &build_class, jni_str!("SERIAL"), serial)
+                .map_err(|_e| jni::errors::Error::JniCall(jni::errors::JniError::Unknown))?;
+        }
+
         if let Some(manufacturer) = field_str(&merged_config.manufacturer) {
             set_build_field(jenv, &build_class, jni_str!("MANUFACTURER"), manufacturer)
                 .map_err(|_e| jni::errors::Error::JniCall(jni::errors::JniError::Unknown))?;
