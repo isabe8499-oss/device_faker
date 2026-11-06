@@ -1,3 +1,5 @@
+import type { IdentityConfig } from '../types'
+
 export interface SyntheticIdentityPreview {
   synthetic: true
   package: string
@@ -88,4 +90,60 @@ export async function deriveSyntheticIdentityPreview(
   }
 
   return preview as SyntheticIdentityPreview
+}
+
+
+/** Mirror the Rust IdentityConfig::validate rules before the WebUI persists a profile. */
+export function isIdentityConfigValid(profile: IdentityConfig | undefined): boolean {
+  if (!profile) return true
+
+  const mode = profile.mode ?? 'static'
+  if (mode !== 'static' && mode !== 'seeded') return false
+
+  const hasAndroidId = Boolean(profile.android_id?.trim())
+  const hasSerial = Boolean(profile.serial?.trim())
+  const hasAppInstanceId = Boolean(profile.app_instance_id?.trim())
+  const generateAndroidId = profile.generate?.android_id === true
+  const generateAppInstanceId = profile.generate?.app_instance_id === true
+  const generateAny = generateAndroidId || generateAppInstanceId
+  const configured =
+    hasAndroidId || hasSerial || hasAppInstanceId || generateAny
+
+  if (
+    hasAndroidId &&
+    !/^[0-9a-f]{1,16}$/i.test(profile.android_id?.trim() ?? '')
+  ) {
+    return false
+  }
+
+  if (
+    hasSerial &&
+    !/^[\x20-\x7e]{1,128}$/.test(profile.serial?.trim() ?? '')
+  ) {
+    return false
+  }
+
+  if (
+    hasAppInstanceId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      profile.app_instance_id?.trim() ?? '',
+    )
+  ) {
+    return false
+  }
+
+  if ((generateAndroidId && hasAndroidId) || (generateAppInstanceId && hasAppInstanceId)) {
+    return false
+  }
+
+  if (generateAny && mode !== 'seeded') return false
+  if (mode === 'seeded' && configured && !generateAny) return false
+
+  const hasSeed = Boolean(profile.seed?.trim())
+  if (generateAny && !/^[0-9a-f]{64}$/i.test(profile.seed?.trim() ?? '')) {
+    return false
+  }
+  if (!generateAny && hasSeed) return false
+
+  return true
 }
