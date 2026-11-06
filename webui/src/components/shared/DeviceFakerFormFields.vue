@@ -337,6 +337,14 @@ function setIdentityMode(mode: 'static' | 'seeded') {
     delete current.android_id
     delete current.app_instance_id
     current.generate = { android_id: true, app_instance_id: true }
+    if (!current.seed?.trim()) {
+      try {
+        current.seed = createIdentitySeedHex()
+      } catch (error) {
+        identityPreviewError.value = error instanceof Error ? error.message : String(error)
+        return
+      }
+    }
   }
   current.mode = mode
   formData.value.identity = current
@@ -396,7 +404,6 @@ async function generateIdentitySeed() {
   identityPreviewError.value = ''
   try {
     const seed = createIdentitySeedHex()
-    setIdentityMode('seeded')
     setIdentitySeed(seed)
     await derivePreview(seed)
   } catch (error) {
