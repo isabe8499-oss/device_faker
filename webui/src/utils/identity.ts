@@ -111,14 +111,14 @@ export function isIdentityConfigValid(profile: IdentityConfig | undefined): bool
 
   if (
     hasAndroidId &&
-    !/^[0-9a-f]{1,16}$/i.test(profile.android_id?.trim() ?? '')
+    !/^[0-9a-f]{1,16}$/i.test(profile.android_id ?? '')
   ) {
     return false
   }
 
   if (
     hasSerial &&
-    !/^[\x20-\x7e]{1,128}$/.test(profile.serial?.trim() ?? '')
+    !/^[\x20-\x7e]{1,128}$/.test(profile.serial ?? '')
   ) {
     return false
   }
@@ -126,7 +126,7 @@ export function isIdentityConfigValid(profile: IdentityConfig | undefined): bool
   if (
     hasAppInstanceId &&
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      profile.app_instance_id?.trim() ?? '',
+      profile.app_instance_id ?? '',
     )
   ) {
     return false
@@ -140,7 +140,7 @@ export function isIdentityConfigValid(profile: IdentityConfig | undefined): bool
   if (mode === 'seeded' && configured && !generateAny) return false
 
   const hasSeed = Boolean(profile.seed?.trim())
-  if (generateAny && !/^[0-9a-f]{64}$/i.test(profile.seed?.trim() ?? '')) {
+  if (generateAny && !/^[0-9a-f]{64}$/i.test(profile.seed ?? '')) {
     return false
   }
   if (!generateAny && hasSeed) return false
