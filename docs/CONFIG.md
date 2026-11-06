@@ -325,6 +325,8 @@ app_instance_id = true
 **Runtime status:** a valid `serial` value is applied only to the deprecated `Build.SERIAL` static field inside the selected app process. It does not change `Build.getSerial()`, `ro.serialno` in `system_server`, or the hardware serial. `generate.android_id` and `generate.app_instance_id` remain synthetic generator/preview outputs and are not consumed by Android APIs. The module does not intercept `Settings.Secure.ANDROID_ID`, Telephony, GAID, MediaDrm, MAC addresses, or Key Attestation. Do not interpret a generated value as proof that an Android API returns it.
 
 
+**Teste em aparelho:** consulte [`IDENTITY_TESTING.md`](IDENTITY_TESTING.md) para o roteiro de validação do campo legado `Build.SERIAL`, incluindo um app de controle e a comparação separada com `Build.getSerial()`.
+
 ## CLI — gerar perfil sintético de identidade
 
 A CLI de desenvolvimento oferece geração de dados sintéticos em TOML ou JSON. Ela não é copiada para o ZIP do módulo e não altera identificadores do Android.
