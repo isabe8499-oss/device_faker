@@ -46,9 +46,9 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // 语言设置
-  const language = ref<'system' | 'zh' | 'en' | 'tr'>('system')
+  const language = ref<'system' | 'zh' | 'en' | 'tr' | 'pt-BR'>('system')
 
-  function setLanguage(newLanguage: 'system' | 'zh' | 'en' | 'tr') {
+  function setLanguage(newLanguage: 'system' | 'zh' | 'en' | 'tr' | 'pt-BR') {
     settings.value.language = newLanguage
     language.value = newLanguage
     saveSettings()
