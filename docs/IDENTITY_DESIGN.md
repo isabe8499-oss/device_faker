@@ -160,9 +160,9 @@ Manual validation must use test apps that display values through documented publ
 
 The Rust configuration model now accepts optional identity blocks on both template and direct-app records. The selected block is copied atomically into MergedAppConfig: a direct app record wins as a whole, and an absent identity block on that direct record does not inherit the template block.
 
-The initial schema recognizes mode (static / seeded), seed, android_id, serial, and app_instance_id. Unknown keys are ignored. Empty strings are treated as unset. Seeded mode requires a non-empty seed when a supported value is configured.
+The schema recognizes `enabled` (optional; missing means enabled for backward compatibility), mode (static / seeded), seed, android_id, serial, and app_instance_id. When `enabled = false`, the identity block is inert and no identity field is applied. Unknown keys are ignored. Empty strings are treated as unset. Seeded mode requires a non-empty seed when a supported value is configured.
 
-The only current runtime consumer is `identity.serial`, which is written to the deprecated `Build.SERIAL` static field inside the selected app process after the complete identity block passes validation. It does not change `Build.getSerial()` or the system serial service. `android_id`, `app_instance_id`, and seed-derived previews remain configuration/generator data and are not consumed by Android APIs. Host tests cover legacy config parsing, template selection, direct-app atomic replacement, unknown-key tolerance, and seeded-mode validation.
+The only current runtime consumer is `identity.serial`, which is written to the deprecated `Build.SERIAL` static field inside the selected app process after the complete identity block passes validation and `identity.enabled` is not false. It does not change `Build.getSerial()` or the system serial service. `android_id`, `app_instance_id`, and seed-derived previews remain configuration/generator data and are not consumed by Android APIs. Host tests cover legacy config parsing, template selection, direct-app atomic replacement, unknown-key tolerance, and seeded-mode validation.
 
 
 ## 14. Identity schema v1 and synthetic generator
