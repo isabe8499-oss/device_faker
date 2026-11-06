@@ -198,7 +198,7 @@ export const useOnlineTemplatesStore = defineStore('online-templates', () => {
   function hasValidBuildFingerprint(value: unknown): value is string {
     if (typeof value !== 'string') return false
     const fingerprint = value.trim()
-    if (!fingerprint || /\\s/.test(fingerprint)) return false
+    if (!fingerprint || /\s/.test(fingerprint)) return false
     const segments = fingerprint.split('/')
     return (
       segments.length === 6 &&
