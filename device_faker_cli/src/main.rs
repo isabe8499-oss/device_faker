@@ -86,7 +86,7 @@ struct IdentityGenerateArgs {
     #[argh(option, short = 'p', long = "package")]
     package: String,
 
-    /// Android user ID (default: 0)
+    /// the Android user ID (default: 0)
     #[argh(option, short = 'u', long = "user-id")]
     user_id: Option<u32>,
 
