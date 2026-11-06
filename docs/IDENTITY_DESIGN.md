@@ -57,6 +57,12 @@ Legend: **Phase 1 candidate** means narrow implementation is plausible, not yet 
 | Key-attestation identifiers | In-process construction of attestation request parameters, where an app explicitly supplies ID tags to a framework API | Limited and deferred. Only caller-provided values before Binder are conceptually process-local. The keystore service/TEE decides whether identifiers are accepted and signs hardware-backed data. Do not intercept or forge the signed certificate chain; do not alter keystored, KeyMint, TEE, or real attestation data. |
 | Firebase/app-instance IDs | SDK-specific Firebase Installations / Analytics storage and service clients | Not a generic OS identifier. Deferred; app SDK versions and persisted state vary. Do not modify arbitrary app databases. |
 
+### Android 12 serial source verification
+
+The Android 12 AOSP `Build.getSerial()` implementation obtains `IDeviceIdentifiersPolicyService` from `ServiceManager` and calls `getSerialForPackage()`; the service checks device-identifier permissions and then reads `ro.serialno` from the service process. A per-app COW property view cannot alter the value read inside `system_server`. Consequently, the `identity.serial` configuration field is currently stored and validated only; it is not an implementation of `Build.getSerial()`.
+
+References: [Android 12 Build.java](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android12-d1-release/core/java/android/os/Build.java), [DeviceIdentifiersPolicyService.java](https://android.googlesource.com/platform/frameworks/base/+/457bfa1180fd66bdf2e8f91897cc66743decec92/services/core/java/com/android/server/os/DeviceIdentifiersPolicyService.java), and [AOSP device identifier permission guidance](https://source.android.com/docs/core/connect/device-identifiers).
+
 ## 5. Zygisk lifecycle and code lifetime
 
 1. `on_load`: keep existing initialization behavior; no identity hook is installed globally.
